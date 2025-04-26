@@ -1,0 +1,10 @@
+POST http://localhost:5000/register
+Content-Type: application/json
+
+{
+  "name": "Owner",
+  "email": "owner@gmail.com",
+  "password": "owner123",
+  "confirmPassword": "owner123",
+  "role": "admin"
+}
