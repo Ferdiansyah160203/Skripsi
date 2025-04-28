@@ -20,9 +20,9 @@ const Product = db.define(
     description: {
       type: DataTypes.STRING,
     },
-    stock: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+    image: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

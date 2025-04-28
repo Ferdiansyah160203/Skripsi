@@ -18,12 +18,10 @@ const Member = db.define("members", {
   total_spent: {
     type: DataTypes.FLOAT,
     defaultValue: 0,
-    allowNull: false,
   },
-  member_level: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: "basic", // basic, silver, gold, platinum, dst.
+  total_points: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
   },
 });
 

@@ -1,0 +1,8 @@
+POST http://localhost:5000/api/inventories/create
+Content-Type: application/json
+
+{
+  "name": "Tepung Terigu",
+  "unit": "kg",
+  "stock": 100
+}
