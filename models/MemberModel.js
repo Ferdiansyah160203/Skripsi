@@ -1,6 +1,8 @@
 // models/MemberModel.js
-import { DataTypes } from "sequelize";
+import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
+
+const { DataTypes } = Sequelize;
 
 const Member = db.define("members", {
   name: {

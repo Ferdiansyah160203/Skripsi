@@ -1,7 +1,9 @@
-import { DataTypes } from "sequelize";
+import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
 import Product from "./ProductModel.js";
 import InventoryModel from "./InventoriesModel.js";
+
+const { DataTypes } = Sequelize;
 
 const ProductMaterial = db.define("ProductMaterial", {
   quantity_used: {
