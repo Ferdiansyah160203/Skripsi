@@ -2,39 +2,81 @@ import Transaction from "../models/TransactionModel.js";
 import Product from "../models/ProductModel.js";
 import Inventory from "../models/InventoriesModel.js";
 import ProductMaterial from "../models/ProductMaterialModel.js";
+import TransactionProduct from "../models/TransactionProductModel.js";
 import Member from "../models/MemberModel.js";
 import { Op } from "sequelize";
 
 export const createTransaction = async (req, res) => {
-  const { product_id, quantity_sold, payment_method, discount, member_id } =
-    req.body;
+  const { payment_method, discount, member_identifier, products } = req.body;
 
   try {
-    if (!product_id || !quantity_sold || !payment_method) {
-      return res.status(400).json({
-        message: "Product ID, quantity sold, and payment method are required",
-      });
+    // Validasi produk
+    if (!products || products.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one product is required" });
     }
 
-    const product = await Product.findByPk(product_id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    // Hitung total harga dan final price
+    let total_price = 0;
+    let quantity_sold = 0;
+
+    for (const product of products) {
+      const foundProduct = await Product.findByPk(product.product_id);
+      if (!foundProduct) {
+        return res
+          .status(404)
+          .json({ message: `Product with ID ${product.product_id} not found` });
+      }
+
+      total_price += foundProduct.price * product.quantity_sold;
+      quantity_sold += product.quantity_sold;
     }
 
-    const total_price = product.price * quantity_sold;
     const discountAmount = (total_price * discount) / 100;
     const final_price = total_price - discountAmount;
 
+    // Buat transaksi baru
     const transaction = await Transaction.create({
       total_price,
       final_price,
       payment_method,
-      quantity_sold,
       discount: discountAmount,
-      product_id,
+      quantity_sold,
       status: "unpaid",
-      member_id: member_id || null,
+      member_id: member_identifier ? member_identifier : null,
     });
+
+    // Simpan setiap produk dalam transaksi
+    for (const product of products) {
+      const foundProduct = await Product.findByPk(product.product_id);
+      await TransactionProduct.create({
+        transaction_id: transaction.id,
+        product_id: product.product_id,
+        quantity_sold: product.quantity_sold,
+        price: foundProduct.price,
+      });
+    }
+
+    // Tambahkan member jika ada identifier
+    if (member_identifier && !transaction.members_id) {
+      const member = await Member.findOne({
+        where: {
+          [Op.or]: [{ phone: member_identifier }, { email: member_identifier }],
+        },
+      });
+
+      if (member) {
+        transaction.members_id = member.id;
+
+        // Tambahkan poin dan total_spent
+        member.total_spent += transaction.final_price;
+        const pointsEarned = Math.floor(transaction.final_price / 10000);
+        member.total_points += pointsEarned;
+
+        await member.save();
+      }
+    }
 
     res
       .status(201)
@@ -121,50 +163,59 @@ export const markAsPaid = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    // Cek apakah transaksi sudah dibayar
     if (transaction.status === "paid") {
       return res.status(400).json({ message: "Transaction already paid" });
     }
 
-    // Ambil produk yang terlibat dalam transaksi ini
-    const product = await Product.findByPk(transaction.product_id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    // Ambil semua bahan yang digunakan untuk membuat produk ini
-    const materials = await ProductMaterial.findAll({
-      where: { product_id: transaction.product_id },
-      include: Inventory, // Menyertakan data inventory terkait
+    // Ambil semua produk dalam transaksi ini
+    const transactionProducts = await TransactionProduct.findAll({
+      where: { transaction_id: transaction.id },
     });
 
-    // Cek dan kurangi stok setiap bahan yang digunakan
-    for (const material of materials) {
-      const inventory = await Inventory.findByPk(material.inventories_id);
-      if (!inventory) {
-        return res.status(404).json({
-          message: `Inventory not found for material ID ${material.inventories_id}`,
-        });
-      }
-
-      const totalUsed = material.quantity_used * transaction.quantity_sold;
-
-      if (inventory.stock < totalUsed) {
-        return res.status(400).json({
-          message: `Not enough stock for inventory "${inventory.name}". Required: ${totalUsed}, Available: ${inventory.stock}`,
-        });
-      }
-
-      // Kurangi stok bahan di inventory
-      inventory.stock -= totalUsed;
-      await inventory.save();
+    if (transactionProducts.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No products found in transaction" });
     }
 
-    // Update status transaksi menjadi "paid"
+    // Untuk setiap produk dalam transaksi
+    for (const tp of transactionProducts) {
+      const product = await Product.findByPk(tp.product_id);
+      if (!product) continue;
+
+      // Ambil semua bahan yang digunakan oleh produk ini
+      const materials = await ProductMaterial.findAll({
+        where: { product_id: product.id },
+        include: Inventory,
+      });
+
+      // Cek dan kurangi stok
+      for (const material of materials) {
+        const inventory = await Inventory.findByPk(material.inventories_id);
+        if (!inventory) {
+          return res.status(404).json({
+            message: `Inventory not found for material ID ${material.inventories_id}`,
+          });
+        }
+
+        const totalUsed = material.quantity_used * tp.quantity_sold;
+
+        if (inventory.stock < totalUsed) {
+          return res.status(400).json({
+            message: `Not enough stock for "${inventory.name}". Required: ${totalUsed}, Available: ${inventory.stock}`,
+          });
+        }
+
+        inventory.stock -= totalUsed;
+        await inventory.save();
+      }
+    }
+
+    // Tandai sebagai sudah dibayar
     transaction.status = "paid";
     transaction.payment_method = payment_method || transaction.payment_method;
 
-    // Tambahkan member jika ada identifier
+    // Tambahkan member jika ada
     if (member_identifier && !transaction.members_id) {
       const member = await Member.findOne({
         where: {
@@ -174,17 +225,13 @@ export const markAsPaid = async (req, res) => {
 
       if (member) {
         transaction.members_id = member.id;
-
-        // Tambahkan poin dan total_spent
         member.total_spent += transaction.final_price;
         const pointsEarned = Math.floor(transaction.final_price / 10000);
         member.total_points += pointsEarned;
-
         await member.save();
       }
     }
 
-    // Simpan transaksi yang sudah diupdate
     await transaction.save();
 
     res.status(200).json({
@@ -196,5 +243,39 @@ export const markAsPaid = async (req, res) => {
       message: "Error updating transaction status",
       error: error.message,
     });
+  }
+};
+
+// Fungsi untuk membatalkan transaksi
+
+export const cancelTransaction = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const transaction = await Transaction.findByPk(id);
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    if (transaction.status === "paid") {
+      return res
+        .status(400)
+        .json({ message: "Cannot cancel a paid transaction" });
+    }
+
+    if (transaction.status === "cancelled") {
+      return res.status(400).json({ message: "Transaction already cancelled" });
+    }
+
+    transaction.status = "cancelled";
+    await transaction.save();
+
+    res
+      .status(200)
+      .json({ message: "Transaction cancelled successfully", transaction });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error cancelling transaction", error: error.message });
   }
 };

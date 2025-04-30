@@ -5,6 +5,7 @@ import {
   getTransactionById,
   getAllTransactions,
   markAsPaid,
+  cancelTransaction,
 } from "../controller/TransactionController.js";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.put("/:id", updateTransaction);
 router.get("/:id", getTransactionById);
 router.get("/", getAllTransactions);
 router.put("/:id/mark-as-paid/", markAsPaid);
+router.patch("/:id/cancel/", cancelTransaction);
 
 export default router;

@@ -1,6 +1,6 @@
 import app from "./index.js";
 import db from "./config/Database.js";
-import "./models/index.js";
+import "./models/associations.js";
 
 const PORT = process.env.PORT || 5000;
 

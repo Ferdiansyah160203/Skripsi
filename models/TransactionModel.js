@@ -1,7 +1,7 @@
 // models/TransactionModel.js
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Product from "./ProductModel.js";
+
 import Member from "./MemberModel.js";
 
 const { DataTypes } = Sequelize;
@@ -43,9 +43,6 @@ const Transaction = db.define(
 );
 
 // Relasi dengan Product
-Transaction.belongsTo(Product, { foreignKey: "product_id" });
-Product.hasMany(Transaction, { foreignKey: "product_id" });
-
 Transaction.belongsTo(Member, { foreignKey: "members_id" });
 Member.hasMany(Transaction, { foreignKey: "members_id" });
 

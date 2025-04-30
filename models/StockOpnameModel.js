@@ -1,28 +1,36 @@
-import { DataTypes } from "sequelize";
+import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-import Inventory from "./InventoryModel.js";
+import InventoryModel from "./InventoriesModel.js";
 
-const StockOpname = db.define("StockOpname", {
-  actual_stock: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
+const { DataTypes } = Sequelize;
+
+const StockOpname = db.define(
+  "StockOpname",
+  {
+    actual_stock: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    recorded_stock: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    difference: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    note: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
-  recorded_stock: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  difference: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-  },
-  note: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Relasi
-StockOpname.belongsTo(Inventory, { foreignKey: "inventory_id" });
-Inventory.hasMany(StockOpname, { foreignKey: "inventory_id" });
+StockOpname.belongsTo(InventoryModel, { foreignKey: "inventories_id" });
+InventoryModel.hasMany(StockOpname, { foreignKey: "inventories_id" });
 
 export default StockOpname;

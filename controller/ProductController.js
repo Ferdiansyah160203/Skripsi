@@ -1,32 +1,63 @@
-import Product from "../models/ProductModel.js";
-import InventoryModel from "../models/InventoriesModel.js";
-import ProductMaterial from "../models/ProductMaterialModel.js";
+import {
+  Product,
+  ProductMaterial,
+  InventoryModel,
+} from "../models/associations.js";
 
 //get all products
 export const getAllProducts = async (req, res) => {
   try {
     const products = await Product.findAll({
-      include: InventoryModel,
+      include: {
+        model: ProductMaterial,
+        include: InventoryModel, // relasi dari Product -> ProductMaterial -> Inventory
+      },
     });
+
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: "Error fetching products", error });
   }
 };
 
-//get product by id
-export const getProductById = async (req, res) => {
-  const { id } = req.params;
+export const getAvailableProducts = async (req, res) => {
   try {
-    const product = await Product.findByPk(id, {
-      include: InventoryModel,
+    const products = await Product.findAll({
+      include: [
+        {
+          model: ProductMaterial,
+          include: [
+            {
+              model: InventoryModel, 
+            },
+          ],
+        },
+      ],
     });
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-    res.status(200).json(product);
+
+    // Filter produk yang tersedia berdasarkan stok
+    const result = products.map((product) => {
+      const isAvailable = product.ProductMaterials.every((material) => {
+        const inventory = material.inventory; 
+        return inventory && inventory.stock >= material.quantity_used;
+      });
+
+      return {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        image: product.image,
+        available: isAvailable, // Tambahkan status availability
+      };
+    });
+
+    res.status(200).json(result); // Kirim hasil produk yang tersedia dengan status availability
   } catch (error) {
-    res.status(500).json({ message: "Error fetching product", error });
+    res.status(500).json({
+      message: "Error fetching available products",
+      error: error.message,
+    });
   }
 };
 
