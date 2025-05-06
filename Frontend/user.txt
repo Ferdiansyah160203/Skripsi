@@ -1,0 +1,27 @@
+{
+    "message": "User created successfully",
+    "user": {
+        "id": 1,
+        "name": "cashier",
+        "email": "cashier@gmail.com",
+        "password": "$2b$10$pz2qSsN7uJ1S7xQZfKIyKeRjo3yGkQFzGRmjGlFrhrjtj5b5DtwXC",
+        "role": "cashier",
+        "status": "active",
+        "updatedAt": "2025-05-06T01:29:20.334Z",
+        "createdAt": "2025-05-06T01:29:20.334Z"
+    }
+}
+
+{
+    "message": "User created successfully",
+    "user": {
+        "id": 2,
+        "name": "admin",
+        "email": "admin@gmail.com",
+        "password": "$2b$10$eMdnpgX7TCRYrFSj0SfdCuOvsx4wTUwiW2xSJNnpMOW6pOiTkuhUm",
+        "role": "admin",
+        "status": "active",
+        "updatedAt": "2025-05-06T04:30:55.679Z",
+        "createdAt": "2025-05-06T04:30:55.679Z"
+    }
+}

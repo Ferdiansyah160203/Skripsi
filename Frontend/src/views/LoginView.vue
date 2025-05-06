@@ -9,7 +9,7 @@
     <div class="flex items-center justify-center bg-gradient-to-r from-sky-300 to-indigo-300 p-6">
       <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-md">
         <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Login ke POS</h2>
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <form @submit.prevent="loginAdmin" class="space-y-4">
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -36,36 +36,93 @@
           >
             Login
           </button>
-          <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
+          <p v-if="msg" class="text-red-500 text-sm mt-2 text-center">{{ msg }}</p>
         </form>
       </div>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+<script>
+import api from '/utils/axios.js'
 
-const email = ref('')
-const password = ref('')
-const error = ref('')
-const router = useRouter()
+export default {
+  name: 'LoginAdmin',
+  data() {
+    return {
+      email: '',
+      password: '',
+      msg: '',
+    }
+  },
+  methods: {
+    async loginAdmin() {
+      // Validate input fields
+      if (!this.email || !this.password) {
+        this.msg = 'Email dan password wajib diisi!'
+        return
+      }
 
-const handleLogin = async () => {
-  try {
-    const res = await axios.post('/api/login', {
-      email: email.value,
-      password: password.value,
-    })
+      // Basic email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(this.email)) {
+        this.msg = 'Format email tidak valid!'
+        return
+      }
 
-    const { accessToken } = res.data
-    localStorage.setItem('accessToken', accessToken)
+      try {
+        // Step 1: Login untuk mendapatkan token
+        const loginResponse = await api.post('api/users/login', {
+          email: this.email,
+          password: this.password,
+        })
 
-    router.push('/dashboard')
-  } catch (err) {
-    err.value = 'Login gagal. Periksa email dan password.'
-  }
+        const token = loginResponse.data.accessToken
+        if (!token) {
+          this.msg = 'Login gagal. Token tidak ditemukan.'
+          return
+        }
+
+        // Simpan token
+        localStorage.setItem('accessToken', token)
+
+        console.log('Token:', token)
+        const userResponse = await api.get('api/users/', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const role = userResponse.data.role
+        localStorage.setItem('userRole', role)
+
+        if (role === 'admin') {
+          this.$router.push('/dashboard')
+        } else if (role === 'cashier') {
+          this.$router.push('/order')
+        } else {
+          this.msg = 'Role tidak dikenali.'
+        }
+      } catch (error) {
+        console.error(error)
+
+        // Handle specific error scenarios
+        if (error.response) {
+          if (error.response.status === 401) {
+            this.msg = 'Email atau password salah.'
+          } else if (error.response.status === 403) {
+            this.msg = 'Akses ditolak. Hubungi admin.'
+          } else {
+            this.msg = error.response.data.message || 'Login gagal. Silakan coba lagi.'
+          }
+        } else {
+          this.msg = 'Terjadi kesalahan jaringan. Silakan coba lagi.'
+        }
+      } finally {
+        // Clear sensitive data
+        this.password = ''
+      }
+    },
+  },
 }
 </script>

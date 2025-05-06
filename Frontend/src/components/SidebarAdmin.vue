@@ -96,6 +96,7 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   LayoutDashboard,
@@ -107,7 +108,7 @@ import {
   ShoppingCart,
   Boxes,
   SendToBack,
-} from 'lucide-vue-next' // Pastikan kamu sudah install: `npm i lucide-vue-next`
+} from 'lucide-vue-next'
 
 defineProps({
   isOpen: Boolean,
@@ -119,21 +120,40 @@ function isActiveRoute(path) {
   return route.path.startsWith(path)
 }
 
-const navItems = [
-  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Order', to: '/order', icon: SendToBack },
-  {
-    label: 'Products',
-    to: '/admin/products',
-    icon: PackageSearch,
-    children: [
-      { label: 'All Products', to: '/admin/products/all', icon: Box },
-      { label: 'Categories', to: '/admin/products/categories', icon: Tag },
-    ],
-  },
-  { label: 'Inventories', to: '/inventories', icon: Boxes },
-  { label: 'Transactions', to: '/admin/transactions', icon: ShoppingCart },
-  { label: 'Member', to: '/admin/users', icon: Users },
-  { label: 'Settings', to: '/admin/settings', icon: Settings },
-]
+// Ambil role dari localStorage (atau bisa pakai Pinia/Vuex kalau kamu pakai state management)
+const userRole = ref('')
+
+onMounted(() => {
+  userRole.value = localStorage.getItem('userRole') || ''
+})
+
+// Buat menu berdasarkan role
+const navItems = computed(() => {
+  if (userRole.value === 'admin') {
+    return [
+      { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+      {
+        label: 'Products',
+        to: '/admin/products',
+        icon: PackageSearch,
+        children: [
+          { label: 'All Products', to: '/admin/products/all', icon: Box },
+          { label: 'Categories', to: '/admin/products/categories', icon: Tag },
+        ],
+      },
+      { label: 'Inventories', to: '/inventories', icon: Boxes },
+      { label: 'Transactions', to: '/admin/transactions', icon: ShoppingCart },
+      { label: 'Member', to: '/admin/users', icon: Users },
+      { label: 'Settings', to: '/admin/settings', icon: Settings },
+    ]
+  } else if (userRole.value === 'cashier') {
+    return [
+      { label: 'Order', to: '/order', icon: SendToBack },
+      { label: 'Transactions', to: '/transactions', icon: ShoppingCart },
+    ]
+  } else {
+    return [] // kosong jika tidak login atau role tidak dikenal
+  }
+})
 </script>
+>

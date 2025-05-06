@@ -63,6 +63,7 @@
 <script setup>
 import { ref, defineEmits } from 'vue'
 import { CircleX } from 'lucide-vue-next'
+import api from '/utils/axios.js'
 
 const emit = defineEmits(['close', 'save'])
 defineProps({ show: Boolean })
@@ -73,13 +74,16 @@ function close() {
   emit('close')
 }
 
-function handleSubmit() {
-  const newItem = {
-    ...form.value,
-    createdAt: new Date().toISOString(),
+async function handleSubmit() {
+  try {
+    const response = await api.post('/api/inventories/create', form.value)
+
+    emit('save', response.data)
+    close()
+  } catch (error) {
+    console.error(error)
+    alert('Terjadi kesalahan pada server saat menyimpan data.')
   }
-  emit('save', newItem)
-  close()
 }
 </script>
 

@@ -1,17 +1,49 @@
 import { createRouter, createWebHistory } from 'vue-router'
+// import { useAuthStore } from '@/stores/auth'
 import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/LoginView.vue'
-import ShowInventories from '@/views/Inventories/ShowInventories.vue'
-import OrderMenu from '@/views/OrderMenu.vue'
+import ShowInventories from '@/views/Admin/Inventories/ShowInventories.vue'
+import OrderMenu from '@/views/Cashier/OrderMenu.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'login', component: LoginView },
-    { path: '/dashboard', name: 'dashboard', component: DashboardView },
-    { path: '/inventories', name: 'inventories', component: ShowInventories },
-    { path: '/order', name: 'order-menu', component: OrderMenu },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/inventories',
+      name: 'inventories',
+      component: ShowInventories,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/order',
+      name: 'order-menu',
+      component: OrderMenu,
+      meta: { requiresAuth: true },
+    },
   ],
 })
 
 export default router
+
+// router.beforeEach(async (to, from, next) => {
+//   const auth = useAuthStore()
+
+//   // Jika belum ambil user
+//   if (!auth.user && localStorage.getItem('accessToken')) {
+//     await auth.fetchUser()
+//   }
+
+//   // Jika butuh auth tapi belum login
+//   if (to.meta.requiresAuth && !auth.isAuthenticated) {
+//     next('/')
+//   } else {
+//     next()
+//   }
+// })
