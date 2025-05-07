@@ -6,14 +6,16 @@ import {
   deleteProduct,
   getAvailableProducts,
 } from "../controller/ProductController.js";
+import { verifyToken } from "../middleware/verifyToken.js";
+import { upload } from "../middleware/UploadImage.js";
 
 const router = express.Router();
 
-router.post("/create", createProduct);
-router.get("/", getAllProducts);
+router.post("/create", verifyToken, upload.single("image"), createProduct);
+router.get("/", verifyToken, getAllProducts);
 
-router.put("/:id", updateProduct);
-router.get("/available", getAvailableProducts);
-router.delete("/:id", deleteProduct);
+router.put("/:id", verifyToken, updateProduct);
+router.get("/available", verifyToken, getAvailableProducts);
+router.delete("/:id", verifyToken, deleteProduct);
 
 export default router;

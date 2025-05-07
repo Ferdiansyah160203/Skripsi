@@ -28,7 +28,7 @@ export const getAvailableProducts = async (req, res) => {
           model: ProductMaterial,
           include: [
             {
-              model: InventoryModel, 
+              model: InventoryModel,
             },
           ],
         },
@@ -38,7 +38,7 @@ export const getAvailableProducts = async (req, res) => {
     // Filter produk yang tersedia berdasarkan stok
     const result = products.map((product) => {
       const isAvailable = product.ProductMaterials.every((material) => {
-        const inventory = material.inventory; 
+        const inventory = material.inventory;
         return inventory && inventory.stock >= material.quantity_used;
       });
 
@@ -63,33 +63,41 @@ export const getAvailableProducts = async (req, res) => {
 
 //create product
 export const createProduct = async (req, res) => {
-  const { name, price, description, materials } = req.body; // materials is an array of { inventoryId, quantity_used }
+  const { name, price, description, materials } = req.body;
+  let parsedMaterials = [];
 
   try {
-    // Validasi input
-    if (!name || !price || !materials || materials.length === 0) {
+    // Parse materials string ke array JSON
+    if (typeof materials === "string") {
+      parsedMaterials = JSON.parse(materials);
+    } else {
+      parsedMaterials = materials;
+    }
+
+    if (!name || !price || parsedMaterials.length === 0) {
       return res
         .status(400)
         .json({ message: "Name, price, and materials are required" });
     }
 
-    // Create Product
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
+
     const newProduct = await Product.create({
       name,
       price,
       description,
+      image: imagePath, // simpan path
     });
 
-    const productMaterials = materials.map((material) => ({
+    const productMaterials = parsedMaterials.map((material) => ({
       product_id: newProduct.id,
       inventories_id: material.inventories_id,
       quantity_used: material.quantity_used,
     }));
     await ProductMaterial.bulkCreate(productMaterials);
 
-    // Update Stock pada Inventory setelah produk dibuat
-    for (let material of materials) {
-      const inventory = await InventoryModel.findByPk(material.inventoriesId);
+    for (let material of parsedMaterials) {
+      const inventory = await InventoryModel.findByPk(material.inventories_id);
       if (inventory) {
         inventory.stock -= material.quantity_used;
         await inventory.save();
@@ -98,7 +106,7 @@ export const createProduct = async (req, res) => {
 
     res
       .status(201)
-      .json({ message: "Product created successfully", newProduct });
+      .json({ message: "Product created successfully", product: newProduct });
   } catch (error) {
     res.status(500).json({ message: "Error creating product", error });
   }

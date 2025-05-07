@@ -68,6 +68,22 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const getUserByToken = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ["id", "name", "email", "role", "status"],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User tidak ditemukan" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal mengambil data user", error });
+  }
+};
+
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -105,6 +121,7 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "Strict", // atau 'Lax' jika kamu ingin lebih fleksibel
     });
 
     res.status(200).json({ message: "Login successful", accessToken });
