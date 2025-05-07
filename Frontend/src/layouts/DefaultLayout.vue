@@ -1,12 +1,20 @@
 <template>
-  <div class="h-full grid md:grid-cols-[16rem_1fr] bg-gray-100">
-    <Sidebar :isOpen="isSidebarOpen" @toggle-sidebar="toggleSidebar" />
-    <!-- Main area -->
-    <div class="flex flex-col">
-      <Navbar @toggle-sidebar="toggleSidebar" @logout="logout" />
-      <main class="flex-1 p-6">
-        <slot />
-      </main>
+  <div class="h-screen flex overflow-hidden">
+    <!-- Sidebar fixed -->
+    <Sidebar
+      :isOpen="isSidebarOpen"
+      @toggle-sidebar="toggleSidebar"
+      class="fixed top-0 left-0 w-64 h-screen z-30 hidden md:block"
+    />
+    <!-- Navbar fixed -->
+    <Navbar
+      @toggle-sidebar="toggleSidebar"
+      @logout="logout"
+      class="fixed top-0 left-64 right-0 h-16 z-20"
+    />
+    <!-- Main content -->
+    <div class="flex-1 mt-16 overflow-y-auto bg-gray-100">
+      <slot />
     </div>
   </div>
 </template>

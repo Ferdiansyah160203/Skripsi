@@ -6,7 +6,9 @@
     >
       <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-sky-600">Tambah Inventaris</h2>
+          <h2 class="text-xl font-bold text-sky-600">
+            {{ isEdit ? 'Edit Inventaris' : 'Tambah Inventaris' }}
+          </h2>
           <button @click="close" class="text-gray-500 hover:text-red-500">
             <CircleX class="w-6 h-6" />
           </button>
@@ -61,14 +63,33 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { ref, watch, defineProps, defineEmits } from 'vue'
 import { CircleX } from 'lucide-vue-next'
 import api from '/utils/axios.js'
 
-const emit = defineEmits(['close', 'save'])
-defineProps({ show: Boolean })
+const props = defineProps({
+  show: Boolean,
+  editId: Number,
+})
+const emit = defineEmits(['close', 'saved'])
 
 const form = ref({ name: '', unit: '', stock: 0 })
+const isEdit = ref(false)
+
+watch(
+  () => props.editId,
+  async (newId) => {
+    if (newId) {
+      isEdit.value = true
+      const { data } = await api.get(`/api/inventories/${newId}`)
+      form.value = { ...data }
+    } else {
+      isEdit.value = false
+      form.value = { name: '', unit: '', stock: 0 }
+    }
+  },
+  { immediate: true },
+)
 
 function close() {
   emit('close')
@@ -76,13 +97,18 @@ function close() {
 
 async function handleSubmit() {
   try {
-    const response = await api.post('/api/inventories/create', form.value)
-
-    emit('save', response.data)
+    if (isEdit.value) {
+      const { data } = await api.put(`/api/inventories/${props.editId}`, form.value)
+      emit('saved', data)
+    } else {
+      const { data } = await api.post('/api/inventories/create', form.value)
+      emit('saved', data)
+    }
+    form.value = { name: '', unit: '', stock: 0 }
     close()
   } catch (error) {
     console.error(error)
-    alert('Terjadi kesalahan pada server saat menyimpan data.')
+    alert('Gagal menyimpan data.')
   }
 }
 </script>

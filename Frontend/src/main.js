@@ -1,18 +1,15 @@
-import './assets/main.css'
-import PrimeVue from 'primevue/config'
-
-import ConfirmDialog from 'primevue/confirmdialog'
-import ConfirmationService from 'primevue/confirmationservice'
-
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 
+import PrimeVue from 'primevue/config'
+import VueSweetalert2 from 'vue-sweetalert2'
+import 'sweetalert2/dist/sweetalert2.min.css'
+
+// PrimeVue styles
+import './assets/main.css'
+
 const app = createApp(App)
 
-app.use(router)
+app.use(PrimeVue).use(router).use(VueSweetalert2)
 app.mount('#app')
-
-app.use(PrimeVue)
-app.use(ConfirmationService)
-app.component('ConfirmDialog', ConfirmDialog)

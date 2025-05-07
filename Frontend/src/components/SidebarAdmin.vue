@@ -103,8 +103,6 @@ import {
   Users,
   Settings,
   PackageSearch,
-  Box,
-  Tag,
   ShoppingCart,
   Boxes,
   SendToBack,
@@ -134,12 +132,8 @@ const navItems = computed(() => {
       { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
       {
         label: 'Products',
-        to: '/admin/products',
+        to: '/products',
         icon: PackageSearch,
-        children: [
-          { label: 'All Products', to: '/admin/products/all', icon: Box },
-          { label: 'Categories', to: '/admin/products/categories', icon: Tag },
-        ],
       },
       { label: 'Inventories', to: '/inventories', icon: Boxes },
       { label: 'Transactions', to: '/admin/transactions', icon: ShoppingCart },
