@@ -140,6 +140,9 @@ import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import api from '/utils/axios.js'
 import Swal from 'sweetalert2'
 
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 const apiBaseUrl = import.meta.env.VITE_API_URL
 const getImageUrl = (path) => (path ? `${apiBaseUrl}${path}` : 'https://via.placeholder.com/150')
 
@@ -201,7 +204,10 @@ const totalPrice = computed(() =>
 )
 
 async function submitOrder() {
-  if (cart.value.length === 0) return alert('Keranjang kosong.')
+  if (cart.value.length === 0) {
+    Swal.fire('Oops!', 'Keranjang kosong.', 'warning')
+    return
+  }
 
   const payload = {
     payment_method: paymentMethod.value,
@@ -215,13 +221,28 @@ async function submitOrder() {
 
   try {
     const res = await api.post('/api/transactions/create', payload)
-    alert(`Transaksi berhasil! ID: ${res.data.transaction.id}`)
+    const trxId = res.data.transaction.id
+
+    Swal.fire({
+      icon: 'success',
+      title: `Transaksi berhasil!`,
+      text: `ID Transaksi: ${trxId}`,
+      timer: 2000,
+      showConfirmButton: false,
+    })
+
+    // Reset form
     cart.value = []
     memberIdentifier.value = ''
     discount.value = 0
+
+    // Redirect ke /payment dengan parameter id
+    setTimeout(() => {
+      router.push(`/payment/${trxId}`)
+    }, 1500)
   } catch (err) {
     console.error('Gagal membuat transaksi:', err)
-    alert('Gagal memproses transaksi.')
+    Swal.fire('Gagal', 'Terjadi kesalahan saat memproses transaksi.', 'error')
   }
 }
 </script>

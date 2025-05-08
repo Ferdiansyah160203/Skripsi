@@ -136,13 +136,14 @@ const navItems = computed(() => {
         icon: PackageSearch,
       },
       { label: 'Inventories', to: '/inventories', icon: Boxes },
-      { label: 'Transactions', to: '/admin/transactions', icon: ShoppingCart },
-      { label: 'Member', to: '/admin/users', icon: Users },
+      { label: ' Sales', to: '/Sales/', icon: ShoppingCart },
+
       { label: 'Settings', to: '/admin/settings', icon: Settings },
     ]
   } else if (userRole.value === 'cashier') {
     return [
       { label: 'Order', to: '/order', icon: SendToBack },
+      { label: 'Member', to: '/members', icon: Users },
       { label: 'Transactions', to: '/transactions', icon: ShoppingCart },
     ]
   } else {

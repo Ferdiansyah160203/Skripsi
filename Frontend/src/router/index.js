@@ -7,7 +7,10 @@ import ShowInventories from '@/views/Admin/Inventories/ShowInventories.vue'
 import ShowProduct from '@/views/Admin/Product/ShowProduct.vue'
 import CreateProduct from '@/views/Admin/Product/CreateProduct.vue'
 
-import OrderMenu from '@/views/Cashier/OrderMenu.vue'
+import OrderMenu from '@/views/Cashier/Order/OrderMenu.vue'
+import PaymentMenu from '@/views/Cashier/Order/PaymentMenu.vue'
+
+import ShowMember from '@/views/Cashier/Member/ShowMember.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,12 +28,7 @@ const router = createRouter({
       component: ShowInventories,
       meta: { requiresAuth: true },
     },
-    {
-      path: '/order',
-      name: 'order-menu',
-      component: OrderMenu,
-      meta: { requiresAuth: true },
-    },
+
     {
       path: '/products',
       name: 'products',
@@ -41,6 +39,25 @@ const router = createRouter({
       path: '/products/create',
       name: 'create-product',
       component: CreateProduct,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/payment/:id',
+      name: 'payment-menu',
+      component: PaymentMenu,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: '/order',
+      name: 'order-menu',
+      component: OrderMenu,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/members',
+      name: 'members',
+      component: ShowMember,
       meta: { requiresAuth: true },
     },
   ],
