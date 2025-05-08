@@ -1,7 +1,6 @@
 // models/TransactionModel.js
 import { Sequelize } from "sequelize";
 import db from "../config/Database.js";
-
 import Member from "./MemberModel.js";
 
 const { DataTypes } = Sequelize;
@@ -34,7 +33,23 @@ const Transaction = db.define(
     },
     quantity_sold: {
       type: DataTypes.INTEGER,
-      allowNull: false, // Jumlah produk yang dijual dalam transaksi ini
+      allowNull: false,
+    },
+    items: {
+      type: DataTypes.JSON,
+      allowNull: false,
+    },
+    // Kolom baru untuk menyimpan uang yang dibayar
+    cash_paid: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+    },
+    // Kolom baru untuk menyimpan kembalian
+    change: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
     },
   },
   {

@@ -10,7 +10,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-router.post("/create", verifyToken, createInventory);
+router.post("/create", createInventory);
 router.get("/", verifyToken, getAllInventories);
 router.get("/:id", verifyToken, getInventoryById);
 router.put("/:id", verifyToken, updateInventory);

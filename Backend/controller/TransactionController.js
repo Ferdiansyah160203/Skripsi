@@ -7,36 +7,66 @@ import Member from "../models/MemberModel.js";
 import { Op } from "sequelize";
 
 export const createTransaction = async (req, res) => {
-  const { payment_method, discount, member_identifier, products } = req.body;
+  const {
+    payment_method,
+    discount = 0,
+    member_identifier,
+    products,
+    cash_paid = 0, // Menambahkan cash_paid dari request
+  } = req.body;
+
+  const items = [];
 
   try {
-    // Validasi produk
     if (!products || products.length === 0) {
       return res
         .status(400)
         .json({ message: "At least one product is required" });
     }
 
-    // Hitung total harga dan final price
     let total_price = 0;
     let quantity_sold = 0;
 
-    for (const product of products) {
-      const foundProduct = await Product.findByPk(product.product_id);
+    for (const item of products) {
+      const foundProduct = await Product.findByPk(item.product_id);
       if (!foundProduct) {
-        return res
-          .status(404)
-          .json({ message: `Product with ID ${product.product_id} not found` });
+        return res.status(404).json({
+          message: `Product with ID ${item.product_id} not found`,
+        });
       }
 
-      total_price += foundProduct.price * product.quantity_sold;
-      quantity_sold += product.quantity_sold;
+      const subTotal = foundProduct.price * item.quantity_sold;
+
+      // Menambahkan produk ke array items
+      items.push({
+        product_id: foundProduct.id,
+        name: foundProduct.name,
+        price: foundProduct.price,
+        qty: item.quantity_sold,
+        subtotal: subTotal,
+      });
+
+      total_price += subTotal;
+      quantity_sold += item.quantity_sold;
     }
 
     const discountAmount = (total_price * discount) / 100;
     const final_price = total_price - discountAmount;
 
-    // Buat transaksi baru
+    // Menghitung kembalian
+    const change = cash_paid - final_price;
+
+    // Optional: Temukan member (jika ada)
+    let member = null;
+    if (member_identifier) {
+      member = await Member.findOne({
+        where: {
+          [Op.or]: [{ phone: member_identifier }, { email: member_identifier }],
+        },
+      });
+    }
+
+    // Simpan transaksi ke database
     const transaction = await Transaction.create({
       total_price,
       final_price,
@@ -44,43 +74,23 @@ export const createTransaction = async (req, res) => {
       discount: discountAmount,
       quantity_sold,
       status: "unpaid",
-      member_id: member_identifier ? member_identifier : null,
+      member_id: member ? member.id : null,
+      items,
+      cash_paid, // Menyimpan cash_paid
+      change, // Menyimpan change
     });
 
-    // Simpan setiap produk dalam transaksi
-    for (const product of products) {
-      const foundProduct = await Product.findByPk(product.product_id);
-      await TransactionProduct.create({
-        transaction_id: transaction.id,
-        product_id: product.product_id,
-        quantity_sold: product.quantity_sold,
-        price: foundProduct.price,
-      });
+    // Tambahkan poin ke member (jika ada)
+    if (member) {
+      member.total_spent += final_price;
+      member.total_points += Math.floor(final_price / 10000);
+      await member.save();
     }
 
-    // Tambahkan member jika ada identifier
-    if (member_identifier && !transaction.members_id) {
-      const member = await Member.findOne({
-        where: {
-          [Op.or]: [{ phone: member_identifier }, { email: member_identifier }],
-        },
-      });
-
-      if (member) {
-        transaction.members_id = member.id;
-
-        // Tambahkan poin dan total_spent
-        member.total_spent += transaction.final_price;
-        const pointsEarned = Math.floor(transaction.final_price / 10000);
-        member.total_points += pointsEarned;
-
-        await member.save();
-      }
-    }
-
-    res
-      .status(201)
-      .json({ message: "Transaction created successfully", transaction });
+    res.status(201).json({
+      message: "Transaction created successfully",
+      transaction,
+    });
   } catch (error) {
     res
       .status(500)
@@ -133,11 +143,19 @@ export const getTransactionById = async (req, res) => {
     if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
-    res.status(200).json(transaction);
+
+    // Parse items kalau masih dalam bentuk string
+    const items =
+      typeof transaction.items === "string"
+        ? JSON.parse(transaction.items)
+        : transaction.items;
+
+    res.status(200).json({ ...transaction.toJSON(), items });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching transaction", error: error.message });
+    res.status(500).json({
+      message: "Error fetching transaction",
+      error: error.message,
+    });
   }
 };
 
@@ -154,69 +172,32 @@ export const getAllTransactions = async (req, res) => {
 
 export const markAsPaid = async (req, res) => {
   const { id } = req.params;
-  const { payment_method, member_identifier } = req.body;
+  const { payment_method, member_identifier, cash_paid } = req.body;
 
   try {
     // Cari transaksi berdasarkan ID
     const transaction = await Transaction.findByPk(id);
+
     if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
+    // Pastikan transaksi belum dibayar
     if (transaction.status === "paid") {
       return res.status(400).json({ message: "Transaction already paid" });
     }
 
-    // Ambil semua produk dalam transaksi ini
-    const transactionProducts = await TransactionProduct.findAll({
-      where: { transaction_id: transaction.id },
-    });
+    // Hitung kembalian
+    const change = cash_paid - transaction.final_price;
 
-    if (transactionProducts.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No products found in transaction" });
-    }
-
-    // Untuk setiap produk dalam transaksi
-    for (const tp of transactionProducts) {
-      const product = await Product.findByPk(tp.product_id);
-      if (!product) continue;
-
-      // Ambil semua bahan yang digunakan oleh produk ini
-      const materials = await ProductMaterial.findAll({
-        where: { product_id: product.id },
-        include: Inventory,
-      });
-
-      // Cek dan kurangi stok
-      for (const material of materials) {
-        const inventory = await Inventory.findByPk(material.inventories_id);
-        if (!inventory) {
-          return res.status(404).json({
-            message: `Inventory not found for material ID ${material.inventories_id}`,
-          });
-        }
-
-        const totalUsed = material.quantity_used * tp.quantity_sold;
-
-        if (inventory.stock < totalUsed) {
-          return res.status(400).json({
-            message: `Not enough stock for "${inventory.name}". Required: ${totalUsed}, Available: ${inventory.stock}`,
-          });
-        }
-
-        inventory.stock -= totalUsed;
-        await inventory.save();
-      }
-    }
-
-    // Tandai sebagai sudah dibayar
+    // Update status transaksi dan informasi pembayaran
     transaction.status = "paid";
     transaction.payment_method = payment_method || transaction.payment_method;
+    transaction.cash_paid = cash_paid; // Update cash_paid
+    transaction.change = change; // Update change
 
     // Tambahkan member jika ada
-    if (member_identifier && !transaction.members_id) {
+    if (member_identifier && !transaction.member_id) {
       const member = await Member.findOne({
         where: {
           [Op.or]: [{ phone: member_identifier }, { email: member_identifier }],
@@ -224,7 +205,7 @@ export const markAsPaid = async (req, res) => {
       });
 
       if (member) {
-        transaction.members_id = member.id;
+        transaction.member_id = member.id;
         member.total_spent += transaction.final_price;
         const pointsEarned = Math.floor(transaction.final_price / 10000);
         member.total_points += pointsEarned;
@@ -236,7 +217,10 @@ export const markAsPaid = async (req, res) => {
 
     res.status(200).json({
       message: "Transaction marked as paid successfully",
-      transaction,
+      transaction: {
+        ...transaction.toJSON(),
+        change, // Pastikan change dikirimkan langsung
+      },
     });
   } catch (error) {
     res.status(500).json({
