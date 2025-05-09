@@ -18,6 +18,10 @@
             />
             <p class="text-lg font-semibold text-gray-800">{{ product.name }}</p>
             <p class="text-sm font-bold text-sky-500">Rp {{ product.price.toLocaleString() }}</p>
+            <!-- Info promo poin -->
+            <p v-if="getPromoForProduct(product)" class="text-xs font-semibold text-green-600 mt-1">
+              {{ getPromoForProduct(product).point_cost }} Points
+            </p>
           </div>
         </div>
       </div>
@@ -45,6 +49,19 @@
               class="w-20 px-2 py-1 border rounded-md"
             />
           </div>
+          <!-- Tombol Tukar Poin jika tersedia -->
+          <div v-if="selectedPromo">
+            <p class="text-sm text-green-600">
+              Tukar dengan {{ selectedPromo.required_points }} poin
+            </p>
+            <button
+              @click="redeemWithPoints"
+              class="mt-2 w-full py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md"
+            >
+              Tukar Poin
+            </button>
+          </div>
+
           <div class="flex items-center justify-between">
             <p class="text-lg font-semibold">Subtotal</p>
             <p class="text-sky-500">
@@ -147,6 +164,7 @@ const apiBaseUrl = import.meta.env.VITE_API_URL
 const getImageUrl = (path) => (path ? `${apiBaseUrl}${path}` : 'https://via.placeholder.com/150')
 
 const products = ref([])
+const promos = ref([])
 const selectedProduct = ref(null)
 const orderQuantity = ref(1)
 const cart = ref([])
@@ -156,12 +174,56 @@ const memberIdentifier = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/api/products/available')
-    products.value = res.data
+    const [productsRes, promoRes] = await Promise.all([
+      api.get('/api/products'),
+      api.get('/api/promos'),
+    ])
+    products.value = productsRes.data
+    promos.value = promoRes.data
   } catch (err) {
     console.error('Gagal memuat produk:', err)
   }
 })
+
+const selectedPromo = computed(() =>
+  promos.value.find((promo) => promo.product_id === selectedProduct.value?.id),
+)
+function getPromoForProduct(product) {
+  return promos.value.find((promo) => promo.product_id === product.id)
+}
+
+function redeemWithPoints() {
+  if (!selectedProduct.value) return
+
+  const promo = selectedPromo.value
+  if (!promo) return
+
+  if (!memberIdentifier.value) {
+    Swal.fire(
+      'Wajib Isi Member!',
+      'Silakan masukkan nomor HP atau email member sebelum tukar poin.',
+      'warning',
+    )
+    return
+  }
+
+  cart.value.push({
+    product_id: selectedProduct.value.id,
+    name: selectedProduct.value.name,
+    price: 0,
+    quantity: 1,
+    used_points: promo.point_cost,
+  })
+
+  Swal.fire({
+    icon: 'success',
+    title: `${selectedProduct.value.name} ditukar dengan poin!`,
+    showConfirmButton: false,
+    timer: 1500,
+  })
+
+  selectedProduct.value = null
+}
 
 function selectProduct(product) {
   selectedProduct.value = product
@@ -204,6 +266,16 @@ const totalPrice = computed(() =>
 )
 
 async function submitOrder() {
+  const isUsingPoints = cart.value.some((item) => item.used_points && item.used_points > 0)
+  if (isUsingPoints && !memberIdentifier.value) {
+    Swal.fire(
+      'Wajib Isi Member!',
+      'Tukar poin hanya bisa dilakukan jika member diinput.',
+      'warning',
+    )
+    return
+  }
+
   if (cart.value.length === 0) {
     Swal.fire('Oops!', 'Keranjang kosong.', 'warning')
     return
@@ -216,6 +288,7 @@ async function submitOrder() {
     products: cart.value.map((item) => ({
       product_id: item.product_id,
       quantity_sold: item.quantity,
+      used_points: item.used_points || 0,
     })),
   }
 

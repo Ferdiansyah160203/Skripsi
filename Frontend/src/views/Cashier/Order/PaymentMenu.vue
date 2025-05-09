@@ -216,12 +216,10 @@ async function markAsPaid() {
     const res = await api.put(`/api/transactions/${transactionId}/mark-as-paid`, payload)
     const updatedTransaction = res.data.transaction
 
-    // Parse ulang jika items masih string
-    if (updatedTransaction.items && typeof updatedTransaction.items === 'string') {
-      updatedTransaction.items = JSON.parse(updatedTransaction.items)
+    // Pastikan status transaksi telah diperbarui
+    if (updatedTransaction.status === 'paid') {
+      transaction.value = updatedTransaction // Update status transaksi ke 'paid'
     }
-
-    transaction.value = updatedTransaction
 
     Swal.fire({
       icon: 'success',
