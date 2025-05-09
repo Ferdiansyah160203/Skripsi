@@ -187,6 +187,27 @@ export const markAsPaid = async (req, res) => {
       return res.status(400).json({ message: "Transaction already paid" });
     }
 
+    // Parse items kalau masih dalam bentuk string
+    let items = [];
+    try {
+      items =
+        typeof transaction.items === "string"
+          ? JSON.parse(transaction.items)
+          : transaction.items;
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ message: "Error parsing transaction items" });
+    }
+
+    // Pastikan member identifier diisi jika menggunakan poin
+    const isUsingPoints = items.some((item) => item.used_points > 0);
+    if (isUsingPoints && !member_identifier) {
+      return res
+        .status(400)
+        .json({ message: "Member identifier is required to redeem points" });
+    }
+
     // Hitung kembalian
     const change = cash_paid - transaction.final_price;
 
@@ -204,11 +225,18 @@ export const markAsPaid = async (req, res) => {
         },
       });
 
+      // Tambahkan poin ke member (jika ada)
       if (member) {
-        transaction.member_id = member.id;
-        member.total_spent += transaction.final_price;
-        const pointsEarned = Math.floor(transaction.final_price / 10000);
-        member.total_points += pointsEarned;
+        // Pastikan untuk mengurangi poin jika poin digunakan dalam transaksi
+        if (items.some((item) => item.used_points > 0)) {
+          member.total_points -= items.reduce(
+            (acc, item) => acc + item.used_points,
+            0
+          );
+        } else {
+          member.total_spent += transaction.final_price;
+          member.total_points += Math.floor(transaction.final_price / 10000);
+        }
         await member.save();
       }
     }
