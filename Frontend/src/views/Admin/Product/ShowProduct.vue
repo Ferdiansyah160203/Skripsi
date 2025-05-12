@@ -3,15 +3,24 @@
     <div class="min-h-screen bg-gray-100 overflow-x-hidden">
       <div class="p-6">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <h1 class="text-3xl font-bold text-indigo-700">🛒 Produk Tersedia</h1>
-          <button
-            @click="openCreateModal"
-            class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-lg shadow-lg"
-          >
-            <PlusIcon class="w-5 h-5" />
-            Tambah Produk
-          </button>
+          <div class="flex gap-3">
+            <button
+              @click="openCreatePromo"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg shadow-lg"
+            >
+              <PlusIcon class="w-5 h-5" />
+              Tambah Promo
+            </button>
+            <button
+              @click="openCreateModal"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-lg shadow-lg"
+            >
+              <PlusIcon class="w-5 h-5" />
+              Tambah Produk
+            </button>
+          </div>
         </div>
 
         <!-- Filter dan Search -->
@@ -40,11 +49,18 @@
           </select>
         </div>
 
-        <!-- Modal Tambah Produk -->
         <CreateProduct
-          :show="showCreateModal"
-          @close="showCreateModal = false"
+          :show="showCreateModal || showEditModal"
+          :productId="selectedProduct?.id"
           @saved="handleSaved"
+          @close="closeModals"
+        />
+
+        <CreatePromo
+          :show="showCreatePromo || showEditPromo"
+          :productId="selectedProduct?.id"
+          @saved="handleSavedPromo"
+          @close="closeModals"
         />
 
         <!-- Product List -->
@@ -87,19 +103,49 @@
             <p class="mt-2 text-sky-600 font-semibold text-lg">
               Rp {{ product.price.toLocaleString('id-ID') }}
             </p>
+            <!-- Info promo poin -->
+            <p v-if="getPromoForProduct(product)" class="text-xs font-semibold text-green-600 mt-1">
+              {{ getPromoForProduct(product).point_cost }} Points
+            </p>
             <span
               class="inline-block text-xs px-3 py-1 rounded-sm mt-2 font-medium text-center w-full"
               :class="product.available ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'"
             >
               {{ product.available ? 'Tersedia' : 'Tidak Tersedia' }}
             </span>
-
-            <button
-              @click="deleteProduct(product.id)"
-              class="mt-4 bg-red-500 text-white py-2 px-4 text-sm rounded-lg hover:bg-red-600 shadow-md"
-            >
-              Hapus
-            </button>
+            <div class="flex justify-between items-center mt-4">
+              <div class="relative">
+                <button
+                  @click="toggleDropdown(product.id)"
+                  class="text-gray-500 hover:text-gray-700"
+                >
+                  Edit
+                </button>
+                <div
+                  v-if="dropdownVisible[product.id]"
+                  class="absolute top-8 left-0 bg-white border rounded shadow-lg text-sm z-10"
+                >
+                  <button
+                    @click="editProduct(product)"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Edit Produk
+                  </button>
+                  <button
+                    @click="editPromo(product)"
+                    class="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                  >
+                    Edit Promo
+                  </button>
+                </div>
+              </div>
+              <button
+                @click="deleteProduct(product.id)"
+                class="bg-red-500 text-white py-2 px-4 text-sm rounded-lg hover:bg-red-600 shadow-md"
+              >
+                Hapus
+              </button>
+            </div>
           </div>
         </div>
         <!-- Pagination -->
@@ -130,8 +176,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import api from '/utils/axios'
+import api from '../../../../utils/axios'
 import CreateProduct from '@/views/Admin/Product/CreateProduct.vue'
+import CreatePromo from '@/views/Admin/Product/CreatePromo.vue'
 import { PlusIcon } from '@heroicons/vue/24/solid'
 import Swal from 'sweetalert2'
 
@@ -139,15 +186,52 @@ const apiBaseUrl = import.meta.env.VITE_API_URL
 
 const products = ref([])
 const showCreateModal = ref(false)
+const showCreatePromo = ref(false)
 const search = ref('')
 const sortOrder = ref('')
 const availability = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 8
+const promos = ref([]) // Menyimpan data promo
 const isDescriptionExpanded = ref({}) // Menyimpan status expand/ collapse untuk tiap produk
+const showEditModal = ref(false)
+const showEditPromo = ref(false)
+const selectedProduct = ref(null)
+const dropdownVisible = ref({})
+
+function toggleDropdown(productId) {
+  dropdownVisible.value[productId] = !dropdownVisible.value[productId]
+}
+
+function editProduct(product) {
+  selectedProduct.value = product
+  showEditModal.value = true
+  closeAllDropdowns()
+}
+
+function closeModals() {
+  showCreateModal.value = false
+  showEditModal.value = false
+  showCreatePromo.value = false
+  showEditPromo.value = false
+}
+
+function editPromo(product) {
+  selectedProduct.value = product
+  showEditPromo.value = true
+  closeAllDropdowns()
+}
+
+function closeAllDropdowns() {
+  dropdownVisible.value = {}
+}
 
 function getImageUrl(path) {
   return `${apiBaseUrl}${path}`
+}
+
+function getPromoForProduct(product) {
+  return promos.value.find((promo) => promo.product_id === product.id)
 }
 
 async function fetchProducts() {
@@ -159,12 +243,29 @@ async function fetchProducts() {
   }
 }
 
+async function fetchPromos() {
+  try {
+    const response = await api.get('/api/promos')
+    promos.value = response.data
+  } catch (error) {
+    console.error('Gagal memuat promo:', error)
+  }
+}
+
 function openCreateModal() {
   showCreateModal.value = true
 }
 
+function openCreatePromo() {
+  showCreatePromo.value = true
+}
+
 function handleSaved() {
   fetchProducts()
+}
+
+function handleSavedPromo() {
+  fetchPromos()
 }
 
 function toggleDescription(productId) {
@@ -233,7 +334,10 @@ function prevPage() {
   if (currentPage.value > 1) currentPage.value--
 }
 
-onMounted(fetchProducts)
+onMounted(() => {
+  fetchProducts()
+  fetchPromos()
+})
 </script>
 
 <style scoped>

@@ -7,7 +7,9 @@
       <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative">
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-emerald-600">Tambah Produk</h2>
+          <h2 class="text-xl font-bold text-emerald-600">
+            {{ isEditMode ? 'Edit Produk' : 'Tambah Produk' }}
+          </h2>
           <button @click="emit('close')" class="text-gray-400 hover:text-red-500">
             <CircleX class="w-6 h-6" />
           </button>
@@ -143,11 +145,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '/utils/axios'
 import { CircleX } from 'lucide-vue-next'
+const isEditMode = ref(false)
 
-defineProps({ show: Boolean })
+const { show, productId } = defineProps({ show: Boolean, productId: Number })
+
 const emit = defineEmits(['close', 'saved'])
 
 const form = ref({
@@ -169,7 +173,42 @@ onMounted(async () => {
   } catch (err) {
     console.error('Gagal memuat inventaris:', err)
   }
+
+  if (productId) {
+    isEditMode.value = true
+    loadProduct()
+  }
 })
+
+watch(
+  () => show,
+  async (val) => {
+    if (val && productId) {
+      isEditMode.value = true
+      await loadProduct()
+    } else if (val && !productId) {
+      isEditMode.value = false
+      resetForm()
+    }
+  },
+)
+
+async function loadProduct() {
+  try {
+    const res = await api.get(`/api/products/products/${productId}`)
+    const data = res.data
+    form.value.name = data.name
+    form.value.price = data.price
+    form.value.description = data.description
+    form.value.materials = data.ProductMaterials.map((m) => ({
+      inventories_id: m.inventory.id,
+      quantity_used: m.quantity_used,
+    }))
+    imagePreview.value = data.image ? `/uploads/${data.image}` : null
+  } catch (err) {
+    console.error('Gagal memuat data produk:', err)
+  }
+}
 
 function onFileChange(event) {
   const file = event.target.files[0]
@@ -206,24 +245,26 @@ async function submitProduct() {
   }
 
   try {
-    await api.post('/api/products/create', formData, {
+    const url = isEditMode.value ? `/api/products/products/${productId}` : '/api/products/create'
+    const method = isEditMode.value ? 'put' : 'post'
+
+    await api[method](url, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
-    toast.value = { message: 'Produk berhasil disimpan!', success: true }
 
-    // Set timeout untuk menghilangkan notifikasi setelah 3 detik
-    setTimeout(() => {
-      toast.value = { message: '', success: true }
-    }, 3000)
+    toast.value = {
+      message: isEditMode.value ? 'Produk berhasil diperbarui!' : 'Produk berhasil disimpan!',
+      success: true,
+    }
+
+    setTimeout(() => (toast.value.message = ''), 3000)
 
     emit('saved')
     resetForm()
     setTimeout(() => emit('close'), 1000)
   } catch (err) {
     toast.value = { message: 'Gagal menyimpan produk.', success: false }
-    setTimeout(() => {
-      toast.value = { message: '', success: false }
-    }, 3000)
+    setTimeout(() => (toast.value.message = ''), 3000)
     console.error(err)
   }
 }
