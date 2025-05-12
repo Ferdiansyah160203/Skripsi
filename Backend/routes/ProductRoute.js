@@ -3,6 +3,7 @@ import {
   createProduct,
   getAllProducts,
   updateProduct,
+  getProductById,
   deleteProduct,
   getAvailableProducts,
 } from "../controller/ProductController.js";
@@ -13,6 +14,7 @@ const router = express.Router();
 
 router.post("/create", upload.single("image"), createProduct);
 router.get("/", verifyToken, getAllProducts);
+router.get("/products/:id", verifyToken, getProductById);
 
 router.put("/:id", verifyToken, updateProduct);
 router.get("/available", verifyToken, getAvailableProducts);
