@@ -4,7 +4,9 @@
     class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center"
   >
     <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
-      <h2 class="text-2xl font-bold text-gray-700 mb-4">🎁 Tambah Promo</h2>
+      <h2 class="text-2xl font-bold text-gray-700 mb-4">
+        {{ isEditMode ? '📝 Edit Promo' : '🎁 Tambah Promo' }}
+      </h2>
 
       <form @submit.prevent="submitPromo">
         <!-- Pilih Produk -->
@@ -30,7 +32,6 @@
             v-model="form.point_cost"
             min="1"
             class="w-full border rounded-lg px-4 py-2 focus:ring focus:ring-sky-300"
-            required
           />
         </div>
 
@@ -60,16 +61,20 @@
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import api from '/utils/axios'
 import Swal from 'sweetalert2'
 
-defineProps({
+const products = ref([])
+const isEditMode = ref(false)
+
+// Ambil props dan event
+const props = defineProps({
   show: Boolean,
-  productId: Number,
+  promoId: Number,
 })
+
 const emit = defineEmits(['close', 'saved'])
 
 const form = ref({
@@ -77,9 +82,30 @@ const form = ref({
   point_cost: '',
   is_active: true,
 })
+function resetForm() {
+  form.value = {
+    product_id: '',
+    point_cost: '',
+    is_active: true,
+  }
+  isEditMode.value = false
+}
 
-const products = ref([])
+watch(
+  () => props.show,
+  async (val) => {
+    if (val) {
+      await fetchProducts()
+      if (props.promoId) {
+        await fetchPromo()
+      } else {
+        resetForm()
+      }
+    }
+  },
+)
 
+// Ambil daftar produk yang tersedia
 async function fetchProducts() {
   try {
     const res = await api.get('/api/products/available')
@@ -89,17 +115,43 @@ async function fetchProducts() {
   }
 }
 
-async function submitPromo() {
+async function fetchPromo() {
   try {
-    await api.post('/api/promos/create', form.value)
-    Swal.fire('Berhasil', 'Promo berhasil ditambahkan', 'success')
-    emit('saved')
-    emit('close')
-  } catch (error) {
-    console.error('Gagal menambahkan promo:', error)
-    Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan promo', error)
+    const res = await api.get(`/api/promos/${props.promoId}`)
+    form.value = {
+      product_id: res.data.product_id,
+      point_cost: res.data.point_cost,
+      is_active: res.data.is_active,
+    }
+    isEditMode.value = true
+  } catch (err) {
+    console.error('Gagal mengambil promo:', err)
   }
 }
 
-onMounted(fetchProducts)
+// Simpan (buat atau edit promo)
+async function submitPromo() {
+  try {
+    if (isEditMode.value) {
+      await api.put(`/api/promos/${props.promoId}`, form.value)
+      Swal.fire('Berhasil', 'Promo berhasil diperbarui', 'success')
+    } else {
+      await api.post('/api/promos/create', form.value)
+      Swal.fire('Berhasil', 'Promo berhasil ditambahkan', 'success')
+    }
+    emit('saved')
+    emit('close')
+  } catch (error) {
+    console.error('Gagal menyimpan promo:', error)
+    const errorMessage = error.response?.data?.message || 'Terjadi kesalahan saat menyimpan promo'
+    Swal.fire('Gagal', errorMessage, 'error')
+  }
+}
+
+onMounted(() => {
+  fetchProducts()
+  if (props.productId) {
+    fetchPromo()
+  }
+})
 </script>

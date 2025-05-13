@@ -2,6 +2,12 @@
   <DefaultLayout>
     <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow mt-6">
       <h2 class="text-2xl font-bold text-indigo-600 mb-4">Detail Transaksi</h2>
+      <button
+        @click="kembaliKeOrder"
+        class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md"
+      >
+        Tambah Order Lagi
+      </button>
 
       <!-- Tampilan transaksi -->
       <div
@@ -94,11 +100,8 @@
               <p class="flex justify-between">
                 <span>{{ item.qty }} x {{ format(item.price) }} =</span>
                 <span>
-                  {{
-                    item.subtotal !== undefined && !isNaN(item.subtotal)
-                      ? format(item.subtotal)
-                      : 'Error'
-                  }}
+                  {% item.subtotal !== undefined && !isNaN(item.subtotal) ? format(item.subtotal) :
+                  'Error' %}
                 </span>
               </p>
             </div>
@@ -142,12 +145,14 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '/utils/axios.js'
 import Swal from 'sweetalert2'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 const route = useRoute()
+const router = useRouter()
+
 const transactionId = route.params.id
 const transaction = ref(null)
 
@@ -232,6 +237,21 @@ async function markAsPaid() {
   } catch (err) {
     console.error('Gagal update transaksi:', err)
     Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan pembayaran.', 'error')
+  }
+}
+
+function kembaliKeOrder() {
+  if (transaction.value && transaction.value.status !== 'paid') {
+    router.push({
+      name: 'order-edit', // Pastikan ini sesuai dengan nama route Anda untuk halaman OrderMenu.vue
+      query: { transactionId: transaction.value.id }, // Mengirimkan ID transaksi untuk edit
+    })
+  } else {
+    Swal.fire(
+      'Transaksi Sudah Lunas',
+      'Anda tidak bisa mengedit transaksi yang sudah lunas',
+      'info',
+    )
   }
 }
 

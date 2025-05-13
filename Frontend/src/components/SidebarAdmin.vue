@@ -136,7 +136,7 @@ const navItems = computed(() => {
         icon: PackageSearch,
       },
       { label: 'Inventories', to: '/inventories', icon: Boxes },
-      { label: ' Sales', to: '/Sales/', icon: ShoppingCart },
+      { label: ' Sales', to: '/transactions', icon: ShoppingCart },
 
       { label: 'Settings', to: '/admin/settings', icon: Settings },
     ]

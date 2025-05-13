@@ -100,7 +100,7 @@ export const createTransaction = async (req, res) => {
 
 export const updateTransaction = async (req, res) => {
   const { id } = req.params;
-  const { quantity_sold, payment_method, discount } = req.body;
+  const { payment_method, discount, products } = req.body;
 
   try {
     const transaction = await Transaction.findByPk(id);
@@ -108,26 +108,41 @@ export const updateTransaction = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    const product = await Product.findByPk(transaction.product_id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+    // Hapus detail transaksi lama
+    await TransactionDetail.destroy({ where: { transaction_id: id } });
+
+    let totalPrice = 0;
+    for (const item of products) {
+      const product = await Product.findByPk(item.product_id);
+      if (!product) continue;
+
+      const subtotal = product.price * item.quantity_sold;
+      totalPrice += subtotal;
+
+      await TransactionDetail.create({
+        transaction_id: id,
+        product_id: item.product_id,
+        quantity_sold: item.quantity_sold,
+        price: product.price,
+        subtotal,
+      });
     }
 
-    const total_price = product.price * quantity_sold;
-    const discountAmount = (total_price * discount) / 100;
-    const final_price = total_price - discountAmount;
+    const discountAmount = (totalPrice * discount) / 100;
+    const finalPrice = totalPrice - discountAmount;
 
-    transaction.quantity_sold = quantity_sold || transaction.quantity_sold;
-    transaction.payment_method = payment_method || transaction.payment_method;
-    transaction.discount = discountAmount || transaction.discount;
-    transaction.total_price = total_price || transaction.total_price;
-    transaction.final_price = final_price || transaction.final_price;
+    // Update transaksi
+    transaction.payment_method = payment_method;
+    transaction.discount = discountAmount;
+    transaction.total_price = totalPrice;
+    transaction.final_price = finalPrice;
 
     await transaction.save();
 
-    res
-      .status(200)
-      .json({ message: "Transaction updated successfully", transaction });
+    res.status(200).json({
+      message: "Transaction updated successfully",
+      transaction,
+    });
   } catch (error) {
     res
       .status(500)

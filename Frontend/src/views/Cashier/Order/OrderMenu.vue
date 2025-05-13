@@ -18,10 +18,6 @@
             />
             <p class="text-lg font-semibold text-gray-800">{{ product.name }}</p>
             <p class="text-sm font-bold text-sky-500">Rp {{ product.price.toLocaleString() }}</p>
-            <!-- Info promo poin -->
-            <p v-if="getPromoForProduct(product)" class="text-xs font-semibold text-green-600 mt-1">
-              {{ getPromoForProduct(product).point_cost }} Points
-            </p>
           </div>
         </div>
       </div>
@@ -32,16 +28,16 @@
 
         <!-- Detail Produk yang dipilih -->
         <div v-if="selectedProduct" class="space-y-4">
-          <div class="flex items-center justify-between">
-            <p class="text-lg font-semibold">Nama Produk</p>
+          <div class="flex justify-between">
+            <p class="font-semibold">Nama Produk</p>
             <p>{{ selectedProduct.name }}</p>
           </div>
-          <div class="flex items-center justify-between">
-            <p class="text-lg font-semibold">Harga</p>
+          <div class="flex justify-between">
+            <p class="font-semibold">Harga</p>
             <p>Rp {{ selectedProduct.price.toLocaleString() }}</p>
           </div>
-          <div class="flex items-center justify-between">
-            <p class="text-lg font-semibold">Jumlah</p>
+          <div class="flex justify-between items-center">
+            <p class="font-semibold">Jumlah</p>
             <input
               v-model.number="orderQuantity"
               type="number"
@@ -49,29 +45,15 @@
               class="w-20 px-2 py-1 border rounded-md"
             />
           </div>
-          <!-- Tombol Tukar Poin jika tersedia -->
-          <div v-if="selectedPromo">
-            <p class="text-sm text-green-600">
-              Tukar dengan {{ selectedPromo.required_points }} poin
-            </p>
-            <button
-              @click="redeemWithPoints"
-              class="mt-2 w-full py-2 text-white bg-emerald-600 hover:bg-emerald-700 rounded-md"
-            >
-              Tukar Poin
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <p class="text-lg font-semibold">Subtotal</p>
+          <div class="flex justify-between">
+            <p class="font-semibold">Subtotal</p>
             <p class="text-sky-500">
               Rp {{ (selectedProduct.price * orderQuantity).toLocaleString() }}
             </p>
           </div>
-
           <button
             @click="addToCart"
-            class="w-full py-2 text-white bg-sky-500 hover:bg-sky-600 rounded-md"
+            class="w-full py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-md"
           >
             Tambah ke Keranjang
           </button>
@@ -83,8 +65,8 @@
           <ul v-if="cart.length > 0" class="space-y-2">
             <li
               v-for="(item, index) in cart"
-              :key="item.product_id"
-              class="flex justify-between items-center text-sm border-b p-2"
+              :key="item.product_id + '-' + index"
+              class="flex justify-between items-center border-b p-2 text-sm"
             >
               <div>
                 <span class="block font-medium">{{ item.name }}</span>
@@ -142,7 +124,7 @@
               @click="submitOrder"
               class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
             >
-              Proses Pesanan
+              {{ isEditMode ? 'Perbarui Pesanan' : 'Proses Pesanan' }}
             </button>
           </div>
         </div>
@@ -153,13 +135,14 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import api from '/utils/axios.js'
 import Swal from 'sweetalert2'
 
-import { useRouter } from 'vue-router'
-
+const route = useRoute()
 const router = useRouter()
+
 const apiBaseUrl = import.meta.env.VITE_API_URL
 const getImageUrl = (path) => (path ? `${apiBaseUrl}${path}` : 'https://via.placeholder.com/150')
 
@@ -171,6 +154,32 @@ const cart = ref([])
 const discount = ref(0)
 const paymentMethod = ref('cash')
 const memberIdentifier = ref('')
+const isEditMode = ref(false)
+const editingTransactionId = ref(null)
+
+// Fungsi untuk memuat transaksi lama ke cart
+async function loadTransaction(id) {
+  try {
+    const res = await api.get(`/api/transactions/${id}`)
+    const trx = res.data.transaction
+
+    editingTransactionId.value = trx.id
+    isEditMode.value = true
+
+    cart.value = trx.details.map((item) => ({
+      product_id: item.product_id,
+      name: item.product.name,
+      price: item.price,
+      quantity: item.quantity_sold,
+    }))
+
+    paymentMethod.value = trx.payment_method
+    discount.value = trx.discount
+    memberIdentifier.value = trx.member_identifier || ''
+  } catch (err) {
+    console.error('Gagal memuat transaksi:', err)
+  }
+}
 
 onMounted(async () => {
   try {
@@ -181,49 +190,14 @@ onMounted(async () => {
     products.value = productsRes.data
     promos.value = promoRes.data
   } catch (err) {
-    console.error('Gagal memuat produk:', err)
+    console.error('Gagal memuat data:', err)
+  }
+
+  const id = route.params.id
+  if (id) {
+    await loadTransaction(id)
   }
 })
-
-const selectedPromo = computed(() =>
-  promos.value.find((promo) => promo.product_id === selectedProduct.value?.id),
-)
-function getPromoForProduct(product) {
-  return promos.value.find((promo) => promo.product_id === product.id)
-}
-
-function redeemWithPoints() {
-  if (!selectedProduct.value) return
-
-  const promo = selectedPromo.value
-  if (!promo) return
-
-  if (!memberIdentifier.value) {
-    Swal.fire(
-      'Wajib Isi Member!',
-      'Silakan masukkan nomor HP atau email member sebelum tukar poin.',
-      'warning',
-    )
-    return
-  }
-
-  cart.value.push({
-    product_id: selectedProduct.value.id,
-    name: selectedProduct.value.name,
-    price: 0,
-    quantity: 1,
-    used_points: promo.point_cost,
-  })
-
-  Swal.fire({
-    icon: 'success',
-    title: `${selectedProduct.value.name} ditukar dengan poin!`,
-    showConfirmButton: false,
-    timer: 1500,
-  })
-
-  selectedProduct.value = null
-}
 
 function selectProduct(product) {
   selectedProduct.value = product
@@ -232,8 +206,7 @@ function selectProduct(product) {
 
 function addToCart() {
   if (!selectedProduct.value || orderQuantity.value < 1) return
-
-  const existing = cart.value.find((item) => item.product_id === selectedProduct.value.id)
+  const existing = cart.value.find((i) => i.product_id === selectedProduct.value.id)
   if (existing) {
     existing.quantity += orderQuantity.value
   } else {
@@ -244,15 +217,12 @@ function addToCart() {
       quantity: orderQuantity.value,
     })
   }
-
-  // Notifikasi dengan SweetAlert2
   Swal.fire({
     icon: 'success',
     title: `${selectedProduct.value.name} berhasil ditambahkan ke keranjang`,
     showConfirmButton: false,
     timer: 1500,
   })
-
   orderQuantity.value = 1
 }
 
@@ -260,22 +230,10 @@ function removeFromCart(index) {
   cart.value.splice(index, 1)
 }
 
-const totalItems = computed(() => cart.value.reduce((sum, item) => sum + item.quantity, 0))
-const totalPrice = computed(() =>
-  cart.value.reduce((sum, item) => sum + item.price * item.quantity, 0),
-)
+const totalItems = computed(() => cart.value.reduce((sum, i) => sum + i.quantity, 0))
+const totalPrice = computed(() => cart.value.reduce((sum, i) => sum + i.price * i.quantity, 0))
 
 async function submitOrder() {
-  const isUsingPoints = cart.value.some((item) => item.used_points && item.used_points > 0)
-  if (isUsingPoints && !memberIdentifier.value) {
-    Swal.fire(
-      'Wajib Isi Member!',
-      'Tukar poin hanya bisa dilakukan jika member diinput.',
-      'warning',
-    )
-    return
-  }
-
   if (cart.value.length === 0) {
     Swal.fire('Oops!', 'Keranjang kosong.', 'warning')
     return
@@ -285,37 +243,35 @@ async function submitOrder() {
     payment_method: paymentMethod.value,
     discount: discount.value,
     member_identifier: memberIdentifier.value || null,
-    products: cart.value.map((item) => ({
-      product_id: item.product_id,
-      quantity_sold: item.quantity,
-      used_points: item.used_points || 0,
+    products: cart.value.map((i) => ({
+      product_id: i.product_id,
+      quantity_sold: i.quantity,
     })),
   }
 
   try {
-    const res = await api.post('/api/transactions/create', payload)
-    const trxId = res.data.transaction.id
-
+    let res, trxId
+    if (isEditMode.value && editingTransactionId.value) {
+      res = await api.put(`/api/transactions/${editingTransactionId.value}`, payload)
+      trxId = editingTransactionId.value
+    } else {
+      res = await api.post('/api/transactions/create', payload)
+      trxId = res.data.transaction.id
+    }
     Swal.fire({
       icon: 'success',
-      title: `Transaksi berhasil!`,
-      text: `ID Transaksi: ${trxId}`,
-      timer: 2000,
-      showConfirmButton: false,
+      title: 'Pesanan berhasil diproses!',
+      text: `Pesanan ID: ${trxId}`,
+      showConfirmButton: true,
     })
 
-    // Reset form
-    cart.value = []
-    memberIdentifier.value = ''
-    discount.value = 0
-
-    // Redirect ke /payment dengan parameter id
-    setTimeout(() => {
-      router.push(`/payment/${trxId}`)
-    }, 1500)
+    router.push(`/transactions/${trxId}`)
   } catch (err) {
-    console.error('Gagal membuat transaksi:', err)
-    Swal.fire('Gagal', 'Terjadi kesalahan saat memproses transaksi.', 'error')
+    Swal.fire('Oops!', 'Gagal memproses pesanan.', err)
   }
 }
 </script>
+
+<style scoped>
+/* Your custom styles */
+</style>

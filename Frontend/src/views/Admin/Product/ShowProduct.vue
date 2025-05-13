@@ -58,9 +58,9 @@
 
         <CreatePromo
           :show="showCreatePromo || showEditPromo"
-          :productId="selectedProduct?.id"
-          @saved="handleSavedPromo"
+          :promo-id="selectedPromo?.id"
           @close="closeModals"
+          @saved="handleSavedPromo"
         />
 
         <!-- Product List -->
@@ -114,16 +114,17 @@
               {{ product.available ? 'Tersedia' : 'Tidak Tersedia' }}
             </span>
             <div class="flex justify-between items-center mt-4">
+              <!-- Tombol Edit -->
               <div class="relative">
                 <button
-                  @click="toggleDropdown(product.id)"
-                  class="text-gray-500 hover:text-gray-700"
+                  @click="toggleDropdown(product.id, 'edit')"
+                  class="text-gray-500 hover:text-gray-700 bg-gray-100 px-3 py-1 rounded"
                 >
                   Edit
                 </button>
                 <div
-                  v-if="dropdownVisible[product.id]"
-                  class="absolute top-8 left-0 bg-white border rounded shadow-lg text-sm z-10"
+                  v-if="dropdownVisible[product.id] === 'edit'"
+                  class="absolute top-8 left-0 bg-white border rounded shadow-lg text-sm z-10 w-40"
                 >
                   <button
                     @click="editProduct(product)"
@@ -132,19 +133,42 @@
                     Edit Produk
                   </button>
                   <button
-                    @click="editPromo(product)"
+                    v-if="getPromoForProduct(product)"
+                    @click="editPromo(getPromoForProduct(product))"
                     class="block w-full text-left px-4 py-2 hover:bg-gray-100"
                   >
                     Edit Promo
                   </button>
                 </div>
               </div>
-              <button
-                @click="deleteProduct(product.id)"
-                class="bg-red-500 text-white py-2 px-4 text-sm rounded-lg hover:bg-red-600 shadow-md"
-              >
-                Hapus
-              </button>
+
+              <!-- Tombol Hapus -->
+              <div class="relative">
+                <button
+                  @click="toggleDropdown(product.id, 'delete')"
+                  class="bg-red-500 text-white py-2 px-4 text-sm rounded-lg hover:bg-red-600 shadow-md"
+                >
+                  Hapus
+                </button>
+                <div
+                  v-if="dropdownVisible[product.id] === 'delete'"
+                  class="absolute top-10 right-0 bg-white border rounded shadow-lg text-sm z-10 w-40"
+                >
+                  <button
+                    @click="deleteProduct(product.id)"
+                    class="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-100"
+                  >
+                    Hapus Produk
+                  </button>
+                  <button
+                    v-if="getPromoForProduct(product)"
+                    @click="deletePromo(getPromoForProduct(product))"
+                    class="block w-full text-left px-4 py-2 text-red-500 hover:bg-red-100"
+                  >
+                    Hapus Promo
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -174,11 +198,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import api from '../../../../utils/axios'
-import CreateProduct from '@/views/Admin/Product/CreateProduct.vue'
-import CreatePromo from '@/views/Admin/Product/CreatePromo.vue'
+import CreateProduct from '@/views/Admin/Product/ProductModal.vue'
+import CreatePromo from '@/views/Admin/Product/PromoModal.vue'
 import { PlusIcon } from '@heroicons/vue/24/solid'
 import Swal from 'sweetalert2'
 
@@ -197,10 +221,15 @@ const isDescriptionExpanded = ref({}) // Menyimpan status expand/ collapse untuk
 const showEditModal = ref(false)
 const showEditPromo = ref(false)
 const selectedProduct = ref(null)
-const dropdownVisible = ref({})
+const selectedPromo = ref(null)
+const dropdownVisible = reactive({})
 
-function toggleDropdown(productId) {
-  dropdownVisible.value[productId] = !dropdownVisible.value[productId]
+function toggleDropdown(productId, type) {
+  if (dropdownVisible[productId] === type) {
+    dropdownVisible[productId] = null
+  } else {
+    dropdownVisible[productId] = type
+  }
 }
 
 function editProduct(product) {
@@ -212,18 +241,27 @@ function editProduct(product) {
 function closeModals() {
   showCreateModal.value = false
   showEditModal.value = false
+  selectedProduct.value = null // penting!
+
   showCreatePromo.value = false
   showEditPromo.value = false
+  selectedPromo.value = null // penting!
 }
 
-function editPromo(product) {
-  selectedProduct.value = product
-  showEditPromo.value = true
+function editPromo(promo) {
+  if (promo) {
+    selectedPromo.value = promo
+    showEditPromo.value = true
+  } else {
+    Swal.fire('Tidak Ada Promo', 'Promo ini tidak ditemukan.', 'info')
+  }
   closeAllDropdowns()
 }
 
 function closeAllDropdowns() {
-  dropdownVisible.value = {}
+  Object.keys(dropdownVisible).forEach((key) => {
+    dropdownVisible[key] = null
+  })
 }
 
 function getImageUrl(path) {
@@ -294,6 +332,37 @@ async function deleteProduct(id) {
       console.error('Gagal menghapus produk:', error)
     }
   }
+}
+
+async function deletePromo(promo) {
+  if (!promo) {
+    Swal.fire('Tidak Ada Promo', 'Promo ini tidak ditemukan.', 'info')
+    return
+  }
+
+  const result = await Swal.fire({
+    title: 'Yakin ingin menghapus promo ini?',
+    text: 'Promo ini akan dihapus secara permanen.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#e3342f',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Ya, Hapus!',
+    cancelButtonText: 'Batal',
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await api.delete(`/api/promos/${promo.id}`)
+      await fetchPromos()
+      Swal.fire('Berhasil!', 'Promo berhasil dihapus.', 'success')
+    } catch (error) {
+      console.error('Gagal menghapus promo:', error)
+      Swal.fire('Gagal!', 'Gagal menghapus promo.', 'error')
+    }
+  }
+
+  closeAllDropdowns()
 }
 
 // Filter dan Sort

@@ -114,28 +114,66 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, description, price } = req.body;
+  const { name, price, description, materials } = req.body;
+  let parsedMaterials = [];
 
   try {
-    const product = await Product.findByPk(id);
+    // Parse materials string ke array JSON
+    if (typeof materials === "string") {
+      parsedMaterials = JSON.parse(materials);
+    } else {
+      parsedMaterials = materials;
+    }
 
+    if (!name || !price || parsedMaterials.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Name, price, and materials are required" });
+    }
+
+    const product = await Product.findByPk(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Update data product
-    product.name = name ?? product.name;
-    product.description = description ?? product.description;
-    product.price = price ?? product.price;
+    const imagePath = req.file
+      ? `/uploads/${req.file.filename}`
+      : product.image;
+
+    product.name = name;
+    product.price = price;
+    product.description = description;
+    product.image = imagePath;
 
     await product.save();
 
-    res.status(200).json({
-      message: "Product updated successfully",
-      product,
-    });
+    // Update ProductMaterial
+    await ProductMaterial.destroy({ where: { product_id: id } });
+
+    const productMaterials = parsedMaterials.map((material) => ({
+      product_id: id,
+      inventories_id: material.inventories_id,
+      quantity_used: material.quantity_used,
+    }));
+    await ProductMaterial.bulkCreate(productMaterials);
+
+    for (let material of parsedMaterials) {
+      const inventory = await InventoryModel.findByPk(material.inventories_id);
+      if (inventory) {
+        inventory.stock -= material.quantity_used;
+        await inventory.save();
+      }
+    }
+
+    res
+      .status(200)
+      .json({
+        message: "Product updated successfully",
+        product: product,
+        materials: productMaterials,
+      });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error updating product", error });
   }
 };
 

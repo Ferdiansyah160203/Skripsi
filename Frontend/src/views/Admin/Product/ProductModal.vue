@@ -149,6 +149,7 @@ import { ref, onMounted, watch } from 'vue'
 import api from '/utils/axios'
 import { CircleX } from 'lucide-vue-next'
 const isEditMode = ref(false)
+const apiBaseUrl = import.meta.env.VITE_API_URL
 
 const { show, productId } = defineProps({ show: Boolean, productId: Number })
 
@@ -181,17 +182,21 @@ onMounted(async () => {
 })
 
 watch(
-  () => show,
-  async (val) => {
-    if (val && productId) {
+  () => productId,
+  async (newVal) => {
+    if (newVal) {
       isEditMode.value = true
       await loadProduct()
-    } else if (val && !productId) {
+    } else {
       isEditMode.value = false
       resetForm()
     }
   },
 )
+
+function getImageUrl(path) {
+  return `${apiBaseUrl}${path}`
+}
 
 async function loadProduct() {
   try {
@@ -204,7 +209,7 @@ async function loadProduct() {
       inventories_id: m.inventory.id,
       quantity_used: m.quantity_used,
     }))
-    imagePreview.value = data.image ? `/uploads/${data.image}` : null
+    imagePreview.value = getImageUrl(data.image)
   } catch (err) {
     console.error('Gagal memuat data produk:', err)
   }
@@ -245,7 +250,7 @@ async function submitProduct() {
   }
 
   try {
-    const url = isEditMode.value ? `/api/products/products/${productId}` : '/api/products/create'
+    const url = isEditMode.value ? `/api/products/${productId}` : '/api/products/create'
     const method = isEditMode.value ? 'put' : 'post'
 
     await api[method](url, formData, {
