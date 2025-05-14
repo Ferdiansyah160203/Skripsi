@@ -161,16 +161,22 @@ const editingTransactionId = ref(null)
 async function loadTransaction(id) {
   try {
     const res = await api.get(`/api/transactions/${id}`)
-    const trx = res.data.transaction
+    console.log('Data transaksi:', res.data)
+
+    const trx = res.data // BUKAN res.data.transaction
+    if (!trx) {
+      throw new Error('Data transaksi tidak ditemukan.')
+    }
 
     editingTransactionId.value = trx.id
     isEditMode.value = true
+    const items = typeof trx.items === 'string' ? JSON.parse(trx.items) : trx.items
 
-    cart.value = trx.details.map((item) => ({
+    cart.value = items.map((item) => ({
       product_id: item.product_id,
-      name: item.product.name,
-      price: item.price,
-      quantity: item.quantity_sold,
+      name: item.name,
+      price: item.subtotal,
+      quantity: item.qty ?? item.quantity_sold ?? 1,
     }))
 
     paymentMethod.value = trx.payment_method
@@ -178,6 +184,7 @@ async function loadTransaction(id) {
     memberIdentifier.value = trx.member_identifier || ''
   } catch (err) {
     console.error('Gagal memuat transaksi:', err)
+    Swal.fire('Oops!', 'Transaksi tidak ditemukan.', 'error')
   }
 }
 
@@ -265,7 +272,7 @@ async function submitOrder() {
       showConfirmButton: true,
     })
 
-    router.push(`/transactions/${trxId}`)
+    router.push(`/payment/${trxId}`)
   } catch (err) {
     Swal.fire('Oops!', 'Gagal memproses pesanan.', err)
   }

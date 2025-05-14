@@ -46,15 +46,8 @@ const router = createRouter({
     },
 
     {
-      path: '/order',
-      name: 'order-menu',
-      component: OrderMenu,
-      meta: { requiresAuth: true, allowedRoles: ['cashier'] },
-    },
-
-    {
       path: '/order/:id?',
-      name: 'order-edit',
+      name: 'order-menu',
       component: OrderMenu,
       meta: { requiresAuth: true, allowedRoles: ['cashier'] },
     },

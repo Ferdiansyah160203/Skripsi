@@ -3,10 +3,11 @@
     <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow mt-6">
       <h2 class="text-2xl font-bold text-indigo-600 mb-4">Detail Transaksi</h2>
       <button
+        v-if="transaction && transaction.status !== 'paid'"
         @click="kembaliKeOrder"
-        class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md"
+        class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md mb-4"
       >
-        Tambah Order Lagi
+        Edit Order
       </button>
 
       <!-- Tampilan transaksi -->
@@ -92,17 +93,14 @@
         </div>
 
         <div class="border-b mt-2 py-1">
-          <p class="flex justify-between"><span>Description</span><span>Qty Harga Sub</span></p>
+          <p class="flex justify-between"><span>Barang</span><span>Qty Harga Sub</span></p>
 
           <template v-if="transaction.items && Array.isArray(transaction.items)">
             <div v-for="item in transaction.items" :key="item.product_id">
               <p>{{ item.name }}</p>
               <p class="flex justify-between">
                 <span>{{ item.qty }} x {{ format(item.price) }} =</span>
-                <span>
-                  {% item.subtotal !== undefined && !isNaN(item.subtotal) ? format(item.subtotal) :
-                  'Error' %}
-                </span>
+                <span>{{ format(item.subtotal) }}</span>
               </p>
             </div>
           </template>
@@ -164,12 +162,23 @@ const formatTime = (val) =>
 
 onMounted(async () => {
   try {
-    const res = await api.get(`/api/transactions/${transactionId}`)
-    const data = res.data
+    const [transRes, productRes] = await Promise.all([
+      api.get(`/api/transactions/${transactionId}`),
+      api.get('/api/products'), // asumsi ini mengembalikan semua produk
+    ])
 
-    if (data.items && typeof data.items === 'string') {
-      data.items = JSON.parse(data.items)
-    }
+    const data = transRes.data
+    const products = productRes.data
+
+    data.items = data.items.map((item) => {
+      const product = products.find((p) => p.id === item.product_id)
+      return {
+        ...item,
+        name: product?.name || 'Produk Tidak Diketahui',
+        price: product?.price || 0,
+        qty: item.quantity_sold,
+      }
+    })
 
     transaction.value = data
   } catch (err) {
@@ -205,12 +214,6 @@ async function markAsPaid() {
 
   const change = Number(uangDibayar) - totalHarusDibayar
 
-  // Periksa apakah perubahan valid
-  if (change < 0) {
-    Swal.fire('Error', 'Jumlah uang yang dibayar tidak cukup.', 'error')
-    return
-  }
-
   try {
     const payload = {
       payment_method: 'cash',
@@ -221,9 +224,8 @@ async function markAsPaid() {
     const res = await api.put(`/api/transactions/${transactionId}/mark-as-paid`, payload)
     const updatedTransaction = res.data.transaction
 
-    // Pastikan status transaksi telah diperbarui
     if (updatedTransaction.status === 'paid') {
-      transaction.value = updatedTransaction // Update status transaksi ke 'paid'
+      transaction.value = updatedTransaction
     }
 
     Swal.fire({
@@ -242,10 +244,7 @@ async function markAsPaid() {
 
 function kembaliKeOrder() {
   if (transaction.value && transaction.value.status !== 'paid') {
-    router.push({
-      name: 'order-edit', // Pastikan ini sesuai dengan nama route Anda untuk halaman OrderMenu.vue
-      query: { transactionId: transaction.value.id }, // Mengirimkan ID transaksi untuk edit
-    })
+    router.push({ name: 'order-menu', params: { id: transaction.value.id } })
   } else {
     Swal.fire(
       'Transaksi Sudah Lunas',

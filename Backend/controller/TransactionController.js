@@ -75,7 +75,7 @@ export const createTransaction = async (req, res) => {
       quantity_sold,
       status: "unpaid",
       member_id: member ? member.id : null,
-      items,
+      items: JSON.stringify(items),
       cash_paid, // Menyimpan cash_paid
       change, // Menyimpan change
     });
@@ -108,10 +108,11 @@ export const updateTransaction = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
-    // Hapus detail transaksi lama
-    await TransactionDetail.destroy({ where: { transaction_id: id } });
-
     let totalPrice = 0;
+    const updatedItems = Array.isArray(transaction.items)
+      ? transaction.items
+      : [];
+
     for (const item of products) {
       const product = await Product.findByPk(item.product_id);
       if (!product) continue;
@@ -119,11 +120,9 @@ export const updateTransaction = async (req, res) => {
       const subtotal = product.price * item.quantity_sold;
       totalPrice += subtotal;
 
-      await TransactionDetail.create({
-        transaction_id: id,
+      updatedItems.push({
         product_id: item.product_id,
         quantity_sold: item.quantity_sold,
-        price: product.price,
         subtotal,
       });
     }
@@ -136,6 +135,7 @@ export const updateTransaction = async (req, res) => {
     transaction.discount = discountAmount;
     transaction.total_price = totalPrice;
     transaction.final_price = finalPrice;
+    transaction.items = updatedItems; // Store items as an array
 
     await transaction.save();
 
@@ -151,26 +151,35 @@ export const updateTransaction = async (req, res) => {
 };
 
 export const getTransactionById = async (req, res) => {
-  const { id } = req.params;
-
   try {
-    const transaction = await Transaction.findByPk(id);
-    if (!transaction) {
-      return res.status(404).json({ message: "Transaction not found" });
-    }
+    const transaction = await Transaction.findByPk(req.params.id);
 
-    // Parse items kalau masih dalam bentuk string
-    const items =
-      typeof transaction.items === "string"
-        ? JSON.parse(transaction.items)
-        : transaction.items;
+    if (!transaction)
+      return res.status(404).json({ message: "Transaksi tidak ditemukan" });
 
-    res.status(200).json({ ...transaction.toJSON(), items });
-  } catch (error) {
-    res.status(500).json({
-      message: "Error fetching transaction",
-      error: error.message,
+    // Ambil detail produk
+    const items = await TransactionProduct.findAll({
+      where: { transaction_id: transaction.id },
+      include: [{ model: Product, attributes: ["name"] }],
     });
+
+    const mappedItems = items.map((item) => ({
+      product_id: item.product_id,
+      name: item.Product?.name || "Nama tidak tersedia",
+      qty: item.quantity_sold,
+      price: item.price,
+      subtotal: item.quantity_sold * item.price,
+    }));
+
+    const response = {
+      ...transaction.toJSON(),
+      items: mappedItems,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mengambil transaksi" });
   }
 };
 
