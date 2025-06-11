@@ -5,7 +5,7 @@ import Product from "./ProductRoute.js";
 import TransactionRoute from "./TransactionRoute.js";
 import MemberRoute from "./MemberRoute.js";
 import PromoRoute from "./PromoRoute.js";
-import StockOpname from "../models/StockOpnameModel.js";
+import StockOpname from "./StockRoute.js";
 const router = express.Router();
 
 router.use("/api/transactions", TransactionRoute);

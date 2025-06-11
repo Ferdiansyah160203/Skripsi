@@ -1,11 +1,10 @@
-import { Sequelize } from "sequelize";
+import { Model, DataTypes } from "sequelize";
 import db from "../config/Database.js";
 import InventoryModel from "./InventoriesModel.js";
 
-const { DataTypes } = Sequelize;
+class StockOpname extends Model {}
 
-const StockOpname = db.define(
-  "StockOpname",
+StockOpname.init(
   {
     actual_stock: {
       type: DataTypes.FLOAT,
@@ -17,14 +16,22 @@ const StockOpname = db.define(
     },
     difference: {
       type: DataTypes.FLOAT,
-      allowNull: false,
+      allowNull: true,
     },
     note: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+    session_id: {
+      // tambahkan field ini
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
   {
+    sequelize: db,
+    modelName: "StockOpname",
+    tableName: "stockopnames",
     timestamps: true,
   }
 );

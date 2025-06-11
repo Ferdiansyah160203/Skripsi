@@ -11,6 +11,13 @@ import PaymentMenu from '@/views/Cashier/Order/PaymentMenu.vue'
 import ShowMember from '@/views/Cashier/Member/ShowMember.vue'
 
 import ShowTransaction from '@/views/Admin/Transaction/ShowTransaction.vue'
+import TransactionDetail from '@/views/Cashier/Transaction/TransactionDetail.vue'
+
+import StockOpName from '@/views/Admin/StockOpName/StockOpNameCreate.vue'
+import StockOpNameIndex from '@/views/Admin/StockOpName/StockOpNameIndex.vue'
+import StockOpNameShow from '@/views/Admin/StockOpName/StockOpNameShow.vue'
+
+import PointMember from '@/views/PointMember.vue'
 
 // (Opsional) Halaman 403 jika ingin
 import UnauthorizedView from '@/views/UnauthorizedView.vue'
@@ -64,11 +71,41 @@ const router = createRouter({
       meta: { requiresAuth: true, allowedRoles: ['cashier'] },
     },
     {
+      path: '/transaction/cashier',
+      name: 'transaction',
+      component: TransactionDetail,
+      meta: { requiresAuth: true, allowedRoles: ['cashier'] },
+    },
+    {
       path: '/transactions',
       name: 'transactions',
       component: ShowTransaction,
       meta: { requiresAuth: true, allowedRoles: ['admin'] },
     },
+    {
+      path: '/stock-opname/create',
+      name: 'stock-opname',
+      component: StockOpName,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/stock-opname/',
+      name: 'stock-opname-index',
+      component: StockOpNameIndex,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/stock-opname/show/:session_id',
+      name: 'stock-opname-show',
+      component: StockOpNameShow,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/cek-point/',
+      name: 'cek-point',
+      component: PointMember,
+    },
+    
 
     // Untuk Akses yang tidak diizinkan
     {

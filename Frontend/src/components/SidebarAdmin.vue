@@ -106,6 +106,7 @@ import {
   ShoppingCart,
   Boxes,
   SendToBack,
+  Warehouse,
 } from 'lucide-vue-next'
 
 defineProps({
@@ -137,14 +138,14 @@ const navItems = computed(() => {
       },
       { label: 'Inventories', to: '/inventories', icon: Boxes },
       { label: ' Sales', to: '/transactions', icon: ShoppingCart },
-
+      { label: 'Stock Opname', to: '/stock-opname', icon: Warehouse },
       { label: 'Settings', to: '/admin/settings', icon: Settings },
     ]
   } else if (userRole.value === 'cashier') {
     return [
       { label: 'Order', to: '/order', icon: SendToBack },
       { label: 'Member', to: '/members', icon: Users },
-      { label: 'Transactions', to: '/transactions', icon: ShoppingCart },
+      { label: 'Transaction', to: '/transaction/cashier', icon: ShoppingCart },
     ]
   } else {
     return [] // kosong jika tidak login atau role tidak dikenal

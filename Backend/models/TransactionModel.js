@@ -39,13 +39,13 @@ const Transaction = db.define(
       type: DataTypes.JSON,
       allowNull: false,
     },
-    // Kolom baru untuk menyimpan uang yang dibayar
+
     cash_paid: {
       type: DataTypes.FLOAT,
       allowNull: true,
       defaultValue: 0,
     },
-    // Kolom baru untuk menyimpan kembalian
+
     change: {
       type: DataTypes.FLOAT,
       allowNull: true,
