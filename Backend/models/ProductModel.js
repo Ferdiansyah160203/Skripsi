@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import db from "../config/Database.js";
 
 const Product = db.define(
-  "Product",
+  "product",
   {
     id: {
       type: DataTypes.INTEGER,

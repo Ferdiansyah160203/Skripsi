@@ -3,7 +3,7 @@ import db from "../config/Database.js";
 
 const { DataTypes } = Sequelize;
 
-const ProductMaterial = db.define("ProductMaterial", {
+const ProductMaterial = db.define("productmaterial", {
   quantity_used: {
     type: DataTypes.FLOAT,
     allowNull: false,

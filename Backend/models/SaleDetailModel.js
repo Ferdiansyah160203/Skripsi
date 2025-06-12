@@ -3,7 +3,7 @@ import db from "../config/Database.js";
 import Sale from "./SaleModel.js";
 import Product from "./ProductModel.js";
 
-const SaleDetail = db.define("SaleDetail", {
+const SaleDetail = db.define("saledetail", {
   quantity: {
     type: DataTypes.INTEGER,
     allowNull: false,
