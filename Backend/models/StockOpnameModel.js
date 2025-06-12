@@ -30,7 +30,7 @@ StockOpname.init(
   },
   {
     sequelize: db,
-    modelName: "StockOpname",
+    modelName: "stockopname",
     tableName: "stockopnames",
     timestamps: true,
   }
