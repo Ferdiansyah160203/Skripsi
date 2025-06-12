@@ -64,7 +64,7 @@ export const getStockOpnameSessions = async (_req, res) => {
     // Gunakan raw query agar bisa grouping dan aggregate
     const sessions = await StockOpname.sequelize.query(
       `SELECT session_id, MIN(createdAt) as createdAt, COUNT(*) as item_count
-       FROM StockOpnames
+       FROM stockopnames
        GROUP BY session_id
        ORDER BY createdAt DESC`,
       { type: StockOpname.sequelize.QueryTypes.SELECT }
