@@ -6,6 +6,8 @@ import PrimeVue from 'primevue/config'
 import VueSweetalert2 from 'vue-sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
 
+//lucide
+
 // PrimeVue styles
 import './assets/main.css'
 

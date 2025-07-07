@@ -366,7 +366,7 @@ async function loadTransaction() {
   try {
     const [transRes, productsRes] = await Promise.all([
       api.get(`/api/transactions/${transactionId}`),
-      api.get('/api/products'), // Ambil daftar produk untuk mencocokkan nama item
+      api.get('/api/products/available'), // Ambil daftar produk untuk mencocokkan nama item
     ])
 
     let trxData = transRes.data

@@ -1,5 +1,6 @@
 import PointPromo from "../models/PointPromoModel.js";
 import Product from "../models/ProductModel.js";
+import { Op } from "sequelize";
 
 export const createPointPromo = async (req, res) => {
   const { product_id, point_cost, is_active = true } = req.body;
@@ -49,7 +50,7 @@ export const updatePointPromo = async (req, res) => {
 
     if (product_id) {
       const existingPromo = await PointPromo.findOne({
-        where: { product_id, id: { $ne: id } },
+        where: { product_id, id: { [Op.ne]: id } },
       });
       if (existingPromo) {
         return res.status(400).json({

@@ -557,9 +557,9 @@ function parseItems(items) {
 
 // Aksi tombol "View Detail"
 // Admin hanya melihat detail, tidak ada markAsPaid
-function viewDetail(id) {
-  router.push(`/payment/${id}`) // Mengarahkan ke halaman pembayaran detail
-}
+// function viewDetail(id) {
+//   router.push(`/payment/${id}`) // Mengarahkan ke halaman pembayaran detail
+// }
 
 // Aksi tombol "Delete Transaction"
 async function deleteTransaction(id) {

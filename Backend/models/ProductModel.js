@@ -18,7 +18,7 @@ const Product = db.define(
       allowNull: false,
     },
     category: {
-      type: DataTypes.ENUM("nasi", "camilan", "roti", "kopi", "non kopi"),
+      type: DataTypes.ENUM("Nasi", "Camilan", "Roti", "Kopi", "Non Kopi"),
       allowNull: false,
     },
     description: {

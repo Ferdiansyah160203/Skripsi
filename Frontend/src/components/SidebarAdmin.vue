@@ -1,12 +1,26 @@
 <template>
   <!-- Desktop Sidebar -->
-  <aside class="bg-white shadow-lg w-64 h-screen hidden md:flex flex-col">
-    <div class="p-4">
+  <aside
+    :class="[
+      'bg-white shadow-lg w-64 h-screen flex-col fixed top-0 left-0 z-30 transition-transform duration-300',
+      'hidden md:flex',
+      isOpen ? 'md:translate-x-0' : 'md:-translate-x-full',
+    ]"
+  >
+    <div class="p-4 flex justify-between items-center">
       <h2
         class="text-2xl font-bold bg-gradient-to-r from-sky-400 to-purple-500 text-transparent bg-clip-text"
       >
         Kedai Delima
       </h2>
+      <button
+        @click="$emit('toggle-sidebar')"
+        class="text-gray-500 hover:text-gray-700 focus:outline-none"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
     <nav class="flex-1 overflow-y-auto">
       <ul class="py-4 space-y-1">
@@ -14,8 +28,8 @@
           <div>
             <router-link
               :to="item.to"
-              class="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              :class="{ 'bg-indigo-100 text-indigo-700 font-semibold': isActiveRoute(item.to) }"
+              class="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-[#db3a3feb] rounded-md"
+              :class="{ 'bg-[#DB3A40] text-white font-semibold': isActiveRoute(item.to) }"
             >
               <component :is="item.icon" class="w-5 h-5" />
               {{ item.label }}
@@ -51,10 +65,14 @@
   <!-- Mobile Sidebar Drawer -->
   <div
     v-if="isOpen"
-    class="fixed left-0 top-0 z-50 w-64 h-full bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-300"
+    class="fixed left-0 top-0 z-50 w-64 h-full bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-300 transform"
   >
     <div class="flex justify-between items-center border-b pb-2">
-      <h2 class="text-xl font-bold text-indigo-600">POS Admin</h2>
+      <h2
+        class="text-xl font-bold bg-gradient-to-r from-sky-400 to-purple-500 text-transparent bg-clip-text"
+      >
+        Kedai Delima
+      </h2>
       <button @click="$emit('toggle-sidebar')" class="text-gray-500 hover:text-red-500 text-2xl">
         ✖
       </button>
@@ -66,7 +84,7 @@
             <router-link
               :to="item.to"
               class="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              :class="{ 'bg-indigo-100 text-indigo-700 font-semibold': isActiveRoute(item.to) }"
+              :class="{ 'bg-[#DB3A40] text-white font-semibold': isActiveRoute(item.to) }"
               @click="$emit('toggle-sidebar')"
             >
               <component :is="item.icon" class="w-5 h-5" />
@@ -79,7 +97,7 @@
                   :to="child.to"
                   class="flex items-center gap-3 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
                   :class="{
-                    'bg-indigo-100 text-indigo-700 font-semibold': isActiveRoute(child.to),
+                    'bg-[#DB3A40] text-white font-semibold': isActiveRoute(child.to),
                   }"
                   @click="$emit('toggle-sidebar')"
                 >
@@ -101,12 +119,11 @@ import { useRoute } from 'vue-router'
 import {
   LayoutDashboard,
   Users,
-  Settings,
-  PackageSearch,
-  ShoppingCart,
-  Boxes,
+  FileText,
+  ShoppingBasket,
+  Box,
   SendToBack,
-  Warehouse,
+  PackageCheck,
 } from 'lucide-vue-next'
 
 defineProps({
@@ -134,22 +151,20 @@ const navItems = computed(() => {
       {
         label: 'Products',
         to: '/products',
-        icon: PackageSearch,
+        icon: ShoppingBasket,
       },
-      { label: 'Inventories', to: '/inventories', icon: Boxes },
-      { label: ' Sales', to: '/transactions', icon: ShoppingCart },
-      { label: 'Stock Opname', to: '/stock-opname', icon: Warehouse },
-      { label: 'Settings', to: '/admin/settings', icon: Settings },
+      { label: 'Inventories', to: '/inventories', icon: Box },
+      { label: 'Stock Opname', to: '/stock-opname', icon: PackageCheck },
+      { label: 'Report', to: '/transactions', icon: FileText },
     ]
   } else if (userRole.value === 'cashier') {
     return [
       { label: 'Order', to: '/order', icon: SendToBack },
       { label: 'Member', to: '/members', icon: Users },
-      { label: 'Transaction', to: '/transaction/cashier', icon: ShoppingCart },
+      { label: 'Transaction', to: '/transaction/cashier', icon: FileText },
     ]
   } else {
     return [] // kosong jika tidak login atau role tidak dikenal
   }
 })
 </script>
->

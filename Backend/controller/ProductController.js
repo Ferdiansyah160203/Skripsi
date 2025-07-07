@@ -3,6 +3,7 @@ import {
   ProductMaterial,
   InventoryModel,
 } from "../models/associations.js";
+import { deleteUploadedFile } from "../utils/fileUtils.js";
 
 //get all products
 export const getAllProducts = async (req, res) => {
@@ -38,12 +39,15 @@ export const getAvailableProducts = async (req, res) => {
     const result = products.map((product) => {
       const materials = product.ProductMaterials || [];
 
-      const isAvailable =
-        materials.length > 0 &&
-        materials.every((material) => {
+      let isAvailable = true; // Default to available
+
+      // If product has materials, check if all materials are available
+      if (materials.length > 0) {
+        isAvailable = materials.every((material) => {
           const inventory = material.inventory;
           return inventory && inventory.stock >= material.quantity_used;
         });
+      }
 
       return {
         id: product.id,
@@ -151,6 +155,11 @@ export const updateProduct = async (req, res) => {
       ? `/uploads/${req.file.filename}`
       : product.image;
 
+    // If there's a new image, delete the old one
+    if (req.file && product.image) {
+      await deleteUploadedFile(product.image);
+    }
+
     product.name = name;
     product.price = price;
     product.category = category;
@@ -188,10 +197,24 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Delete image file if exists
+    if (product.image) {
+      await deleteUploadedFile(product.image);
+    }
+
+    // Delete related ProductMaterials first to avoid foreign key constraint
+    await ProductMaterial.destroy({ where: { product_id: id } });
+
+    // Delete the product
     await product.destroy();
+
     res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting product", error });
+    console.error("Delete Product Error:", error);
+    res.status(500).json({
+      message: "Error deleting product",
+      error: error.message || "Unknown error",
+    });
   }
 };
 

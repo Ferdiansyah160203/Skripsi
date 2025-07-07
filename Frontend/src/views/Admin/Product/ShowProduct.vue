@@ -1,12 +1,12 @@
 <template>
   <DefaultLayout>
     <div
-      class="p-6 bg-gradient-to-br from-indigo-50 to-white min-h-screen rounded-xl shadow-lg mb-8"
+      class="p-6 bg-gradient-to-br from-gray-250 to-white min-h-screen rounded-xl shadow-lg mb-8"
     >
       <!-- Search, Sort, Status -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
         <!-- Search -->
-        <div>
+        <div class="md:col-span-6">
           <div class="relative w-full">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -20,14 +20,14 @@
             <input
               v-model="search"
               type="text"
-              class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              class="block w-full pl-10 pr-4 py-3 border bg-white border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
               placeholder="Search for..."
             />
           </div>
         </div>
 
         <!-- Urutkan Harga -->
-        <div>
+        <div class="md:col-span-3">
           <select
             v-model="sortOrder"
             class="block w-full py-3 px-3 border border-gray-300 rounded-sm bg-white text-gray-700 focus:outline-none focus:ring-red-500 focus:border-red-500 text-sm"
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Status Ketersediaan -->
-        <div>
+        <div class="md:col-span-3">
           <select
             v-model="availability"
             class="block w-full py-3 px-3 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-red-500 focus:border-red-500 text-sm"
@@ -87,14 +87,15 @@
         </div>
       </div>
 
-      <div class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-8">
+      <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-8">
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
-          class="bg-white rounded-xl shadow-lg p-5 flex flex-col justify-between h-full min-h-[420px] border border-gray-100 hover:shadow-xl transition-shadow duration-300"
+          class="bg-white rounded-lg shadow-sm p-4 flex flex-col justify-between h-full border border-gray-200 hover:shadow-md transition-shadow duration-200"
         >
+          <!-- Product Image -->
           <div
-            class="mb-4 h-40 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden border border-gray-200"
+            class="mb-3 h-32 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center"
           >
             <img
               v-if="product.image"
@@ -105,30 +106,31 @@
             <span v-else class="text-gray-400 text-sm">Tidak ada Gambar</span>
           </div>
 
-          <h2 class="text-xl font-bold text-gray-900 mb-2 truncate">{{ product.name }}</h2>
+          <!-- Product Category -->
+          <div class="mb-2">
+            <span class="text-xs text-gray-500 font-medium">{{ product.category || 'Kopi' }}</span>
+          </div>
 
-          <p
-            class="text-sm text-gray-600 mb-2 flex-grow"
-            :class="isDescriptionExpanded[product.id] ? '' : 'line-clamp-3'"
-          >
-            {{ product.description || 'Tidak ada deskripsi.' }}
+          <!-- Product Name -->
+          <h3 class="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">{{ product.name }}</h3>
+
+          <!-- Product Price -->
+          <p class="text-red-600 font-bold text-base mb-3">
+            Rp. {{ formatCurrency(product.price) }}
           </p>
-          <button
-            @click="toggleDescription(product.id)"
-            class="text-sm text-sky-600 hover:underline mt-1 self-start"
-            v-if="product.description && product.description.length > 100"
-          >
+
+          <!-- Product Description -->
+          <p class="text-xs text-gray-600 mb-3 line-clamp-2">
             {{
-              isDescriptionExpanded[product.id] ? 'Tampilkan Lebih Sedikit' : 'Lihat Selengkapnya'
+              product.description ||
+              'Egestas elit dui scelerisque ut eu purus aliquam vitae habitasse.'
             }}
-          </button>
-
-          <p class="mt-3 text-[#DB3A40] font-bold text-xl">
-            Rp {{ formatCurrency(product.price) }}
           </p>
+
+          <!-- Promo Badge -->
           <div
             v-if="getPromoForProduct(product)"
-            class="flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded-full mt-2 self-start"
+            class="flex items-center gap-1 text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded-full mb-3 self-start"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -140,85 +142,39 @@
             </svg>
             {{ getPromoForProduct(product).point_cost }} Pts
           </div>
-          <span
-            class="inline-block text-xs px-3 py-1 rounded-full mt-3 font-medium text-center self-start"
-            :class="product.available ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-500'"
-          >
-            {{ product.available ? 'Tersedia' : 'Tidak Tersedia' }}
-          </span>
 
-          <div class="flex justify-start gap-3 mt-4 flex-wrap">
+          <!-- Status Badge -->
+          <div class="mb-3">
+            <span
+              class="inline-block text-xs px-2 py-1 rounded-full font-medium"
+              :class="
+                product.available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+              "
+            >
+              {{ product.available ? 'Tersedia' : 'Tidak Tersedia' }}
+            </span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap gap-2 mt-auto">
             <button
               @click="editProduct(product)"
-              class="flex items-center gap-1 px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg text-sm font-medium transition duration-200"
+              class="flex-1 px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-md text-xs font-medium transition duration-200"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.389-8.389-2.828-2.828z"
-                />
-              </svg>
               Edit
             </button>
             <button
               v-if="getPromoForProduct(product)"
               @click="editPromo(getPromoForProduct(product))"
-              class="flex items-center gap-1 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-sm font-medium transition duration-200"
+              class="flex-1 px-3 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-md text-xs font-medium transition duration-200"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h12v1H4z"
-                  clip-rule="evenodd"
-                />
-              </svg>
               Promo
             </button>
             <button
               @click="deleteProduct(product.id)"
-              class="flex items-center gap-1 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition duration-200"
+              class="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-xs font-medium transition duration-200"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                />
-              </svg>
               Hapus
-            </button>
-            <button
-              v-if="getPromoForProduct(product)"
-              @click="deletePromo(getPromoForProduct(product))"
-              class="flex items-center gap-1 px-4 py-2 bg-pink-100 hover:bg-pink-200 text-pink-700 rounded-lg text-sm font-medium transition duration-200"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              Hapus Promo
             </button>
           </div>
         </div>
@@ -270,18 +226,17 @@
       @saved="handleSaved"
       @close="closeModals"
     />
-
     <CreatePromo
       :show="showCreatePromo || showEditPromo"
-      :promo-id="selectedPromo ? selectedPromo.id : null"
-      @close="closeModals"
+      :promoId="selectedPromo ? selectedPromo.id : null"
       @saved="handleSavedPromo"
+      @close="closeModals"
     />
   </DefaultLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import api from '/utils/axios'
 import CreateProduct from '@/views/Admin/Product/ProductModal.vue'
@@ -304,13 +259,11 @@ const selectedPromo = ref(null)
 const search = ref('')
 const sortOrder = ref('') // 'asc' atau 'desc'
 const availability = ref('') // 'true' atau 'false'
-const selectedCategory = ref('Semua') // New: For category filtering, default to 'Semua'
-const categories = ref(['Semua', 'Nasi', 'Makanan Ringan', 'Roti', 'Kopi', 'Non Kopi', 'Paket']) // Example categories based on image
+const selectedCategory = ref('Semua')
+const categories = ref(['Semua', 'Nasi', 'Camilan', 'Roti', 'Kopi', 'Non Kopi', 'Paket']) // Updated categories with proper capitalization
 
 const currentPage = ref(1)
 const itemsPerPage = 8
-
-const isDescriptionExpanded = reactive({})
 
 // --- Computed Properties ---
 const filteredProducts = computed(() => {
@@ -381,14 +334,10 @@ function getPromoForProduct(product) {
   return promos.value.find((promo) => promo.product_id === product.id)
 }
 
-function toggleDescription(productId) {
-  isDescriptionExpanded.value[productId] = !isDescriptionExpanded.value[productId]
-}
-
 // --- Fetch Data ---
 async function fetchProducts() {
   try {
-    const response = await api.get('/api/products')
+    const response = await api.get('/api/products/available')
     products.value = response.data.map((p) => ({
       ...p,
       // Ensure category exists for filtering, default to 'Lain-lain' if not present
@@ -512,35 +461,6 @@ async function deleteProduct(id) {
     } catch (error) {
       console.error('Gagal menghapus produk:', error)
       Swal.fire('Gagal!', 'Gagal menghapus produk. Terjadi kesalahan.', 'error')
-    }
-  }
-}
-
-async function deletePromo(promo) {
-  if (!promo || !promo.id) {
-    Swal.fire('Informasi', 'Promo tidak ditemukan atau ID tidak valid.', 'info')
-    return
-  }
-
-  const result = await Swal.fire({
-    title: 'Hapus Promo?',
-    html: `Anda yakin ingin menghapus promo untuk produk <strong>${promo.product_id}</strong>?<br><strong class="text-red-600">Aksi ini tidak dapat dibatalkan!</strong>`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Ya, Hapus Promo!',
-    cancelButtonText: 'Batal',
-  })
-
-  if (result.isConfirmed) {
-    try {
-      await api.delete(`/api/promos/${promo.id}`)
-      fetchPromos()
-      Swal.fire('Berhasil!', 'Promo berhasil dihapus.', 'success')
-    } catch (error) {
-      console.error('Gagal menghapus promo:', error)
-      Swal.fire('Gagal!', 'Gagal menghapus promo. Terjadi kesalahan.', 'error')
     }
   }
 }

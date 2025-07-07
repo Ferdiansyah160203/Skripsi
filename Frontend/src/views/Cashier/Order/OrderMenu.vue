@@ -525,7 +525,7 @@ async function loadTransaction(id) {
 onMounted(async () => {
   try {
     const [productsRes, promoRes] = await Promise.all([
-      api.get('/api/products'),
+      api.get('/api/products/available'),
       api.get('/api/promos'),
     ])
     products.value = productsRes.data
