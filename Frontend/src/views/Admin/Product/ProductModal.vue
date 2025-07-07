@@ -88,15 +88,19 @@
             />
           </div>
 
-          <!-- <div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-            <input
+            <select
               v-model="form.category"
-              type="text"
               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-emerald-500 focus:border-emerald-500 transition duration-200"
-              placeholder="Contoh: Minuman, Makanan, Jasa"
-            />
-          </div> -->
+              required
+            >
+              <option disabled value="">-- Pilih Kategori --</option>
+              <option v-for="option in categoryOptions" :key="option" :value="option">
+                {{ capitalize(option) }}
+              </option>
+            </select>
+          </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
@@ -230,6 +234,9 @@ const apiBaseUrl = import.meta.env.VITE_API_URL // Pastikan ini terkonfigurasi
 const { show, productId } = defineProps({ show: Boolean, productId: Number })
 const emit = defineEmits(['close', 'saved'])
 
+const categoryOptions = ['nasi', 'camilan', 'roti', 'kopi', 'non kopi'] // Daftar kategori yang valid
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1) // Fungsi untuk kapitalisasi
+
 const form = ref({
   name: '',
   price: 0,
@@ -255,7 +262,7 @@ const formatNumber = (num) => {
 // --- Lifecycle & Watchers ---
 onMounted(async () => {
   try {
-    const res = await api.get('/api/inventories') // Fetch inventories for materials
+    const res = await api.get('/api/inventories') // <<< Check this endpoint
     inventories.value = res.data
   } catch (err) {
     console.error('Gagal memuat inventaris:', err)
@@ -316,7 +323,7 @@ async function loadProduct() {
     form.value.name = data.name
     form.value.price = data.price
     form.value.description = data.description
-    // form.value.category = data.category || '' // Pastikan kategori dimuat
+    form.value.category = data.category // Pastikan kategori dimuat
     // form.value.available = data.available !== undefined ? data.available : true // Pastikan ketersediaan dimuat
     // Memastikan ProductMaterials ada dan di-map dengan benar
     form.value.materials = (data.ProductMaterials || []).map((m) => ({
@@ -358,11 +365,8 @@ async function submitProduct() {
   const formData = new FormData()
   formData.append('name', form.value.name)
   formData.append('price', form.value.price)
-  formData.append('description', form.value.description || '') // Pastikan string kosong jika null
-  // formData.append('category', form.value.category || '') // Tambah kategori
-  // formData.append('available', form.value.available) // Tambah ketersediaan
-
-  // Jika materials kosong, kirim array kosong yang di-stringified
+  formData.append('description', form.value.description || '')
+  formData.append('category', form.value.category)
   formData.append('materials', JSON.stringify(form.value.materials))
 
   if (imageFile.value) {

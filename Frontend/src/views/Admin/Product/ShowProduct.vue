@@ -3,95 +3,87 @@
     <div
       class="p-6 bg-gradient-to-br from-indigo-50 to-white min-h-screen rounded-xl shadow-lg mb-8"
     >
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <h1 class="text-4xl font-extrabold text-indigo-800 flex items-center gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10 text-emerald-600"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 012.586 13H4v1a1 1 0 011 1h.586l.707.707A1 1 0 017 17h6a1 1 0 01.707-.293l.707-.707H15v-1h1.414a1 1 0 01.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 110-6 3 3 0 010 6z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Manajemen Produk
-        </h1>
-        <div class="flex flex-col sm:flex-row gap-3">
-          <button
-            @click="openCreatePromo"
-            class="flex items-center gap-2 px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 rounded-xl shadow-lg transition duration-300 transform hover:scale-105"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h12v1H4z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Tambah Promo
-          </button>
-          <button
-            @click="openCreateModal"
-            class="flex items-center gap-2 px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 rounded-xl shadow-lg transition duration-300 transform hover:scale-105"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Tambah Produk
-          </button>
-        </div>
-      </div>
-
-      <div
-        class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 p-6 bg-white rounded-xl shadow border border-gray-200"
-      >
-        <div class="md:col-span-2">
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Cari Produk</label>
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Cari nama atau deskripsi produk..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-transparent transition"
-          />
-        </div>
+      <!-- Search, Sort, Status -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Search -->
         <div>
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Urutkan Harga</label>
+          <div class="relative w-full">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                />
+              </svg>
+            </div>
+            <input
+              v-model="search"
+              type="text"
+              class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500 text-sm"
+              placeholder="Search for..."
+            />
+          </div>
+        </div>
+
+        <!-- Urutkan Harga -->
+        <div>
           <select
             v-model="sortOrder"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-transparent transition bg-white"
+            class="block w-full py-3 px-3 border border-gray-300 rounded-sm bg-white text-gray-700 focus:outline-none focus:ring-red-500 focus:border-red-500 text-sm"
           >
-            <option value="">Default</option>
+            <option value="">Urutkan Harga</option>
             <option value="asc">Harga Terendah</option>
             <option value="desc">Harga Tertinggi</option>
           </select>
         </div>
+
+        <!-- Status Ketersediaan -->
         <div>
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Status Ketersediaan</label>
           <select
             v-model="availability"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-sky-400 focus:border-transparent transition bg-white"
+            class="block w-full py-3 px-3 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-red-500 focus:border-red-500 text-sm"
           >
-            <option value="">Semua</option>
+            <option value="">Status Ketersediaan</option>
             <option value="true">Tersedia</option>
             <option value="false">Tidak Tersedia</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Filter Kategori + Tombol Tambah -->
+      <div class="flex flex-wrap md:flex-nowrap justify-between items-center gap-4 mb-6">
+        <!-- Kategori -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="cat in categories"
+            :key="cat"
+            @click="selectedCategory = cat"
+            :class="
+              selectedCategory === cat
+                ? 'bg-red-500 text-white shadow border-transparent'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+            "
+            class="px-4 py-2 rounded-md text-sm font-medium transition"
+          >
+            {{ cat }}
+          </button>
+        </div>
+
+        <!-- Tombol Tambah -->
+        <div class="flex gap-3 mt-2 md:mt-0">
+          <button
+            @click="openCreatePromo"
+            class="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-base font-semibold rounded-md shadow-md transition"
+          >
+            <span class="text-xl leading-none">+</span> Tambah Promo
+          </button>
+          <button
+            @click="openCreateModal"
+            class="flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white text-base font-semibold rounded-md shadow-md transition"
+          >
+            <span class="text-xl leading-none">+</span> Tambah Produk
+          </button>
         </div>
       </div>
 
@@ -99,7 +91,7 @@
         <div
           v-for="product in paginatedProducts"
           :key="product.id"
-          class="bg-white rounded-xl shadow-lg p-5 flex flex-col hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+          class="bg-white rounded-xl shadow-lg p-5 flex flex-col justify-between h-full min-h-[420px] border border-gray-100 hover:shadow-xl transition-shadow duration-300"
         >
           <div
             class="mb-4 h-40 flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden border border-gray-200"
@@ -131,7 +123,7 @@
             }}
           </button>
 
-          <p class="mt-3 text-emerald-700 font-extrabold text-xl">
+          <p class="mt-3 text-[#DB3A40] font-bold text-xl">
             Rp {{ formatCurrency(product.price) }}
           </p>
           <div
@@ -248,12 +240,12 @@
             :class="
               currentPage === 1
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-white hover:bg-sky-100 text-sky-700 border-sky-300 shadow-sm'
+                : 'bg-white hover:bg-red-100 text-red-700 border-red-300 shadow-sm'
             "
           >
             Sebelumnya
           </button>
-          <span class="text-md font-semibold flex items-center justify-center text-sky-800">
+          <span class="text-md font-semibold flex items-center justify-center text-red-800">
             Halaman {{ currentPage }} dari {{ totalPages }}
           </span>
           <button
@@ -263,7 +255,7 @@
             :class="
               currentPage === totalPages
                 ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-white hover:bg-sky-100 text-sky-700 border-sky-300 shadow-sm'
+                : 'bg-white hover:bg-red-100 text-red-700 border-red-300 shadow-sm'
             "
           >
             Berikutnya
@@ -290,37 +282,44 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue'
-import DefaultLayout from '@/layouts/DefaultLayout.vue' // Sesuaikan path ini
-import api from '/utils/axios' // Sesuaikan path ini
-import CreateProduct from '@/views/Admin/Product/ProductModal.vue' // Sesuaikan path ini
-import CreatePromo from '@/views/Admin/Product/PromoModal.vue' // Sesuaikan path ini
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import api from '/utils/axios'
+import CreateProduct from '@/views/Admin/Product/ProductModal.vue'
+import CreatePromo from '@/views/Admin/Product/PromoModal.vue'
 import Swal from 'sweetalert2'
 
 const apiBaseUrl = import.meta.env.VITE_API_URL
 
 const products = ref([])
-const promos = ref([]) // Menyimpan data promo
+const promos = ref([])
 
 const showCreateModal = ref(false)
 const showCreatePromo = ref(false)
 const showEditModal = ref(false)
 const showEditPromo = ref(false)
 
-const selectedProduct = ref(null) // Digunakan untuk edit product
-const selectedPromo = ref(null) // Digunakan untuk edit promo
+const selectedProduct = ref(null)
+const selectedPromo = ref(null)
 
 const search = ref('')
 const sortOrder = ref('') // 'asc' atau 'desc'
 const availability = ref('') // 'true' atau 'false'
+const selectedCategory = ref('Semua') // New: For category filtering, default to 'Semua'
+const categories = ref(['Semua', 'Nasi', 'Makanan Ringan', 'Roti', 'Kopi', 'Non Kopi', 'Paket']) // Example categories based on image
 
 const currentPage = ref(1)
 const itemsPerPage = 8
 
-const isDescriptionExpanded = reactive({}) // Menyimpan status expand/collapse untuk tiap produk
+const isDescriptionExpanded = reactive({})
 
 // --- Computed Properties ---
 const filteredProducts = computed(() => {
   let result = [...products.value]
+
+  // Filter based on selected category
+  if (selectedCategory.value && selectedCategory.value !== 'Semua') {
+    result = result.filter((p) => p.category === selectedCategory.value)
+  }
 
   // Filter berdasarkan search
   if (search.value) {
@@ -334,7 +333,7 @@ const filteredProducts = computed(() => {
 
   // Filter berdasarkan ketersediaan
   if (availability.value !== '') {
-    const isAvailable = availability.value === 'true' // Konversi string ke boolean
+    const isAvailable = availability.value === 'true'
     result = result.filter((p) => p.available === isAvailable)
   }
 
@@ -357,8 +356,8 @@ const paginatedProducts = computed(() => {
 })
 
 // --- Watchers ---
-// Reset halaman saat filter/sort/search berubah
-watch([search, sortOrder, availability], () => {
+// Reset halaman saat filter/sort/search/category berubah
+watch([search, sortOrder, availability, selectedCategory], () => {
   currentPage.value = 1
 })
 
@@ -375,11 +374,10 @@ const formatCurrency = (val) => {
 }
 
 const getImageUrl = (path) => {
-  return path ? `${apiBaseUrl}${path}` : 'https://via.placeholder.com/150/f0f0f0?text=No+Image' // Placeholder yang lebih baik
+  return path ? `${apiBaseUrl}${path}` : 'https://via.placeholder.com/150/f0f0f0?text=No+Image'
 }
 
 function getPromoForProduct(product) {
-  // Mencari promo berdasarkan product_id dari produk saat ini
   return promos.value.find((promo) => promo.product_id === product.id)
 }
 
@@ -390,8 +388,30 @@ function toggleDescription(productId) {
 // --- Fetch Data ---
 async function fetchProducts() {
   try {
-    const response = await api.get('/api/products') // Ambil semua produk (termasuk yang tidak available)
-    products.value = response.data
+    const response = await api.get('/api/products')
+    products.value = response.data.map((p) => ({
+      ...p,
+      // Ensure category exists for filtering, default to 'Lain-lain' if not present
+      category: p.category || 'Lain-lain',
+    }))
+    // Dynamically add unique categories if they don't exist in the predefined list
+    const uniqueCategories = new Set(categories.value)
+    products.value.forEach((p) => {
+      if (p.category && !uniqueCategories.has(p.category)) {
+        uniqueCategories.add(p.category)
+      }
+    })
+    // Sort categories to put "Semua" first if it exists, then alphabetically
+    const sortedCategories = Array.from(uniqueCategories).sort()
+    if (sortedCategories.includes('Semua')) {
+      const index = sortedCategories.indexOf('Semua')
+      if (index > -1) {
+        sortedCategories.splice(index, 1)
+      }
+      categories.value = ['Semua', ...sortedCategories]
+    } else {
+      categories.value = sortedCategories
+    }
   } catch (error) {
     console.error('Gagal memuat produk:', error)
     Swal.fire('Error', 'Gagal memuat daftar produk.', 'error')
@@ -404,18 +424,17 @@ async function fetchPromos() {
     promos.value = response.data
   } catch (error) {
     console.error('Gagal memuat promo:', error)
-    // Swal.fire('Error', 'Gagal memuat daftar promo.', 'error'); // Mungkin tidak perlu error jika hanya promo
   }
 }
 
 // --- Modal Controls ---
 function openCreateModal() {
-  selectedProduct.value = null // Pastikan null untuk mode create
+  selectedProduct.value = null
   showCreateModal.value = true
 }
 
 function openCreatePromo() {
-  selectedPromo.value = null // Pastikan null untuk mode create
+  selectedPromo.value = null
   showCreatePromo.value = true
 }
 
@@ -436,24 +455,24 @@ function editPromo(promo) {
 function closeModals() {
   showCreateModal.value = false
   showEditModal.value = false
-  selectedProduct.value = null // Penting untuk mereset
+  selectedProduct.value = null
 
   showCreatePromo.value = false
   showEditPromo.value = false
-  selectedPromo.value = null // Penting untuk mereset
+  selectedPromo.value = null
 }
 
 function handleSaved() {
-  fetchProducts() // Refresh data produk setelah save
-  fetchPromos() // Pastikan promo juga di-refresh
-  closeModals() // Tutup modal setelah save
+  fetchProducts()
+  fetchPromos()
+  closeModals()
   Swal.fire('Berhasil!', 'Produk berhasil disimpan/diperbarui.', 'success')
 }
 
 function handleSavedPromo() {
-  fetchProducts() // Pastikan produk juga di-refresh karena status promo bisa mempengaruhi tampilan produk
-  fetchPromos() // Refresh data promo setelah save
-  closeModals() // Tutup modal setelah save
+  fetchProducts()
+  fetchPromos()
+  closeModals()
   Swal.fire('Berhasil!', 'Promo berhasil disimpan/diperbarui.', 'success')
 }
 
@@ -482,10 +501,9 @@ async function deleteProduct(id) {
   if (result.isConfirmed) {
     try {
       await api.delete(`/api/products/${id}`)
-      fetchProducts() // Re-fetch products after deletion
-      fetchPromos() // Re-fetch promos just in case product deletion affects a promo
+      fetchProducts()
+      fetchPromos()
       Swal.fire('Berhasil!', 'Produk berhasil dihapus.', 'success')
-      // Adjust current page if needed
       if (currentPage.value > totalPages.value && totalPages.value > 0) {
         currentPage.value = totalPages.value
       } else if (totalPages.value === 0) {
@@ -499,7 +517,6 @@ async function deleteProduct(id) {
 }
 
 async function deletePromo(promo) {
-  // Cek apakah promo memiliki ID yang valid
   if (!promo || !promo.id) {
     Swal.fire('Informasi', 'Promo tidak ditemukan atau ID tidak valid.', 'info')
     return
@@ -519,8 +536,7 @@ async function deletePromo(promo) {
   if (result.isConfirmed) {
     try {
       await api.delete(`/api/promos/${promo.id}`)
-      fetchPromos() // Re-fetch promos after deletion
-      // Tidak perlu fetchProducts lagi, karena status promo tidak mengubah daftar produk
+      fetchPromos()
       Swal.fire('Berhasil!', 'Promo berhasil dihapus.', 'success')
     } catch (error) {
       console.error('Gagal menghapus promo:', error)
@@ -537,7 +553,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Custom scrollbar styles (same as before) */
+/* Custom scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -555,13 +571,5 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a0aec0;
-}
-
-/* Line clamp for description */
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 </style>
