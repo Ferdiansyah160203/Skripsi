@@ -1,6 +1,7 @@
 import Transaction from "../models/TransactionModel.js";
 import Product from "../models/ProductModel.js";
 import TransactionProduct from "../models/TransactionProductModel.js";
+import { ProductMaterial, InventoryModel } from "../models/associations.js";
 import Member from "../models/MemberModel.js";
 import PointPromo from "../models/PointPromoModel.js";
 import { Op } from "sequelize";
@@ -25,8 +26,8 @@ export const createTransaction = async (req, res) => {
 
     let total_price = 0;
     let quantity_sold = 0;
-
     let member = null;
+
     if (member_identifier) {
       member = await Member.findOne({
         where: {
@@ -35,6 +36,7 @@ export const createTransaction = async (req, res) => {
       });
     }
 
+    // Validasi semua produk dan simpan ke item[]
     for (const item of products) {
       const foundProduct = await Product.findByPk(item.product_id);
       if (!foundProduct) {
@@ -43,9 +45,7 @@ export const createTransaction = async (req, res) => {
         });
       }
 
-      // Pastikan ada used_points di item, default 0
       const used_points = item.used_points || 0;
-
       const subTotal = foundProduct.price * item.quantity_sold;
 
       items.push({
@@ -59,11 +59,33 @@ export const createTransaction = async (req, res) => {
 
       total_price += subTotal;
       quantity_sold += item.quantity_sold;
+
+      // === Kurangi stok bahan ===
+      const productMaterials = await ProductMaterial.findAll({
+        where: { product_id: foundProduct.id },
+      });
+
+      for (const material of productMaterials) {
+        const inventory = await InventoryModel.findByPk(
+          material.inventories_id
+        );
+        if (!inventory) continue;
+
+        const totalUsed = material.quantity_used * item.quantity_sold;
+
+        if (inventory.stock < totalUsed) {
+          return res.status(400).json({
+            message: `Stok tidak cukup untuk bahan ${inventory.name}`,
+          });
+        }
+
+        inventory.stock -= totalUsed;
+        await inventory.save();
+      }
     }
 
     const discountAmount = (total_price * discount) / 100;
     const final_price = total_price - discountAmount;
-
     const change = cash_paid - final_price;
 
     const transaction = await Transaction.create({
@@ -74,12 +96,12 @@ export const createTransaction = async (req, res) => {
       quantity_sold,
       status: "unpaid",
       members_id: member ? member.id : null,
-      items: JSON.stringify(items), // pastikan ini bukan null / undefined
+      items: JSON.stringify(items),
       cash_paid,
       change,
     });
 
-    // Simpan detail transaksi dengan used_points
+    // Simpan detail transaksi per produk
     for (const item of items) {
       await TransactionProduct.create({
         transaction_id: transaction.id,
@@ -90,85 +112,17 @@ export const createTransaction = async (req, res) => {
       });
     }
 
-    // Jika metode bayar bukan point (belum bayar), jangan update poin/spent
-    // Poin & spent baru diupdate saat bayar (markAsPaid)
-
     res.status(201).json({
       message: "Transaction created successfully",
       transaction,
     });
   } catch (error) {
+    console.error("Create Transaction Error:", error);
     res
       .status(500)
       .json({ message: "Error creating transaction", error: error.message });
   }
 };
-
-// export const updateTransaction = async (req, res) => {
-//   const { id } = req.params;
-//   const { payment_method, discount = 0, products = [] } = req.body;
-
-//   try {
-//     const transaction = await Transaction.findByPk(id);
-//     if (!transaction) {
-//       return res.status(404).json({ message: "Transaction not found" });
-//     }
-
-//     let totalPrice = 0;
-//     let quantitySold = 0;
-//     const updatedItems = [];
-
-//     await TransactionProduct.destroy({ where: { transaction_id: id } });
-
-//     for (const item of products) {
-//       const product = await Product.findByPk(item.product_id);
-//       if (!product) continue;
-
-//       const used_points = item.used_points || 0;
-
-//       const subtotal = product.price * item.quantity_sold;
-//       totalPrice += subtotal;
-//       quantitySold += item.quantity_sold;
-
-//       updatedItems.push({
-//         product_id: item.product_id,
-//         name: product.name,
-//         price: product.price,
-//         qty: item.quantity_sold,
-//         subtotal,
-//         used_points,
-//       });
-
-//       await TransactionProduct.create({
-//         transaction_id: id,
-//         product_id: item.product_id,
-//         quantity_sold: item.quantity_sold,
-//         price: product.price,
-//         used_points,
-//       });
-//     }
-
-//     const discountAmount = (totalPrice * discount) / 100;
-//     const finalPrice = totalPrice - discountAmount;
-
-//     transaction.payment_method = payment_method;
-//     transaction.discount = discountAmount;
-//     transaction.total_price = totalPrice;
-//     transaction.final_price = finalPrice;
-//     transaction.quantity_sold = quantitySold;
-
-//     await transaction.save();
-//     //localhost:5173/transactions
-//     http: res.status(200).json({
-//       message: "Transaction updated successfully",
-//       transaction,
-//     });
-//   } catch (error) {
-//     res
-//       .status(500)
-//       .json({ message: "Error updating transaction", error: error.message });
-//   }
-// };
 
 export const updateTransaction = async (req, res) => {
   const { id } = req.params;

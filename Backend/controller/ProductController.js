@@ -35,24 +35,28 @@ export const getAvailableProducts = async (req, res) => {
       ],
     });
 
-    // Filter produk yang tersedia berdasarkan stok
     const result = products.map((product) => {
-      const isAvailable = product.ProductMaterials.every((material) => {
-        const inventory = material.inventory;
-        return inventory && inventory.stock >= material.quantity_used;
-      });
+      const materials = product.ProductMaterials || [];
+
+      const isAvailable =
+        materials.length > 0 &&
+        materials.every((material) => {
+          const inventory = material.inventory;
+          return inventory && inventory.stock >= material.quantity_used;
+        });
 
       return {
         id: product.id,
         name: product.name,
         price: product.price,
+        category: product.category,
         description: product.description,
         image: product.image,
-        available: isAvailable, // Tambahkan status availability
+        available: isAvailable,
       };
     });
 
-    res.status(200).json(result); // Kirim hasil produk yang tersedia dengan status availability
+    res.status(200).json(result);
   } catch (error) {
     res.status(500).json({
       message: "Error fetching available products",
@@ -63,7 +67,7 @@ export const getAvailableProducts = async (req, res) => {
 
 //create product
 export const createProduct = async (req, res) => {
-  const { name, price, description, materials } = req.body;
+  const { name, price, description, materials, category } = req.body;
   let parsedMaterials = [];
 
   try {
@@ -80,13 +84,19 @@ export const createProduct = async (req, res) => {
         .json({ message: "Name, price, and materials are required" });
     }
 
+    const validCategories = ["nasi", "camilan", "roti", "kopi", "non kopi"];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newProduct = await Product.create({
       name,
       price,
+      category,
       description,
-      image: imagePath, // simpan path
+      image: imagePath,
     });
 
     const productMaterials = parsedMaterials.map((material) => ({
@@ -96,19 +106,15 @@ export const createProduct = async (req, res) => {
     }));
     await ProductMaterial.bulkCreate(productMaterials);
 
-    for (let material of parsedMaterials) {
-      const inventory = await InventoryModel.findByPk(material.inventories_id);
-      if (inventory) {
-        inventory.stock -= material.quantity_used;
-        await inventory.save();
-      }
-    }
-
     res
       .status(201)
       .json({ message: "Product created successfully", product: newProduct });
   } catch (error) {
-    res.status(500).json({ message: "Error creating product", error });
+    console.error("Create Product Error:", error); // tampilkan detail di log
+    res.status(500).json({
+      message: "Error creating product",
+      error: error.message || "Unknown error",
+    });
   }
 };
 
@@ -131,6 +137,11 @@ export const updateProduct = async (req, res) => {
         .json({ message: "Name, price, and materials are required" });
     }
 
+    const validCategories = ["nasi", "camilan", "roti", "kopi", "non kopi"];
+    if (!validCategories.includes(category)) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
     const product = await Product.findByPk(id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -142,6 +153,7 @@ export const updateProduct = async (req, res) => {
 
     product.name = name;
     product.price = price;
+    product.category = category;
     product.description = description;
     product.image = imagePath;
 
@@ -157,21 +169,11 @@ export const updateProduct = async (req, res) => {
     }));
     await ProductMaterial.bulkCreate(productMaterials);
 
-    for (let material of parsedMaterials) {
-      const inventory = await InventoryModel.findByPk(material.inventories_id);
-      if (inventory) {
-        inventory.stock -= material.quantity_used;
-        await inventory.save();
-      }
-    }
-
-    res
-      .status(200)
-      .json({
-        message: "Product updated successfully",
-        product: product,
-        materials: productMaterials,
-      });
+    res.status(200).json({
+      message: "Product updated successfully",
+      product: product,
+      materials: productMaterials,
+    });
   } catch (error) {
     res.status(500).json({ message: "Error updating product", error });
   }

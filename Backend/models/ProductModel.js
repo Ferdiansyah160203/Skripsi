@@ -17,6 +17,10 @@ const Product = db.define(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    category: {
+      type: DataTypes.ENUM("nasi", "camilan", "roti", "kopi", "non kopi"),
+      allowNull: false,
+    },
     description: {
       type: DataTypes.STRING,
     },

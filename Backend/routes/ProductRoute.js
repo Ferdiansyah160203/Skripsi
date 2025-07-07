@@ -12,12 +12,12 @@ import { upload } from "../middleware/UploadImage.js";
 
 const router = express.Router();
 
+router.get("/", getAllProducts);
 router.post("/create", verifyToken, upload.single("image"), createProduct);
-router.get("/", verifyToken, getAllProducts);
-router.get("/products/:id", getProductById);
+router.get("/available", getAvailableProducts);
+router.get("/:id", getProductById);
 
 router.put("/:id", verifyToken, upload.single("image"), updateProduct);
-router.get("/available", verifyToken, getAvailableProducts);
 router.delete("/:id", verifyToken, deleteProduct);
 
 export default router;
