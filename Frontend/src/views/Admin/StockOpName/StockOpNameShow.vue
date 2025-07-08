@@ -1,221 +1,257 @@
 <template>
   <DefaultLayout>
-    <div
-      class="p-6 bg-gradient-to-br from-yellow-50 to-white min-h-screen rounded-xl shadow-lg mb-8"
-    >
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-4xl font-extrabold text-indigo-800 flex items-center gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10 text-yellow-600"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M.8 9A.8.8 0 010 8.2V2.5A2.5 2.5 0 012.5 0h15A2.5 2.5 0 0120 2.5v5.7a.8.8 0 01-1.6 0V2.5a.9.9 0 00-.9-.9H2.5a.9.9 0 00-.9.9v5.7a.8.8 0 01-.8.8zM4 11a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm0 3a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 12.586L12.293 10.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L10 12.586z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 11a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Detail Stock Opname
-        </h1>
-        <button
-          @click="exportPDF"
-          class="flex items-center gap-2 px-6 py-3 text-lg font-medium text-white bg-yellow-600 hover:bg-yellow-700 rounded-xl shadow-lg transition duration-300 transform hover:scale-105"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M.8 9A.8.8 0 010 8.2V2.5A2.5 2.5 0 012.5 0h15A2.5 2.5 0 0120 2.5v5.7a.8.8 0 01-1.6 0V2.5a.9.9 0 00-.9-.9H2.5a.9.9 0 00-.9.9v5.7a.8.8 0 01-.8.8zM4 11a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm0 3a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 12.586L12.293 10.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L10 12.586z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 11a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Export PDF
-        </button>
-      </div>
-
-      <div class="bg-white p-6 rounded-xl shadow mb-8 border border-gray-200">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">Informasi Sesi</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">ID Sesi:</span>
-            <span class="font-mono text-gray-900">{{ sessionId }}</span>
+    <div class="p-6 bg-gray-50 min-h-screen">
+      <!-- Header Section -->
+      <div class="mb-6">
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div class="flex-1">
+            <h1 class="text-2xl font-bold text-gray-800">Detail Stock Opname</h1>
+            <p class="text-gray-600 mt-1">ID Sesi: {{ sessionId }}</p>
           </div>
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">Tanggal Opname:</span>
-            <span>{{ formatDateTime(opnames[0]?.createdAt || new Date()) }}</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">Total Item Diopname:</span>
-            <span>{{ opnames.length }}</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">Total Selisih Stok:</span>
-            <span
-              :class="{
-                'text-red-600': totalDifference < 0,
-                'text-green-600': totalDifference > 0,
-                'text-gray-700': totalDifference === 0,
-              }"
+          <div class="flex gap-4">
+            <button
+              @click="exportPDF"
+              class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
             >
-              {{ formatNumber(totalDifference) }}
-            </span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Export PDF
+            </button>
           </div>
         </div>
       </div>
 
-      <div v-if="loading" class="text-center py-8 text-gray-500 text-lg">
-        <svg
-          class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-3"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        Memuat data stock opname...
-      </div>
-      <div
-        v-else-if="opnames.length === 0"
-        class="text-center py-10 text-gray-500 text-lg bg-white rounded-xl shadow border border-gray-200"
-      >
-        <p class="mb-2">Tidak ada data stock opname untuk sesi ini.</p>
-        <p class="text-sm">Pastikan ID sesi benar atau data telah dicatat.</p>
-      </div>
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Total Item</p>
+              <p class="text-3xl font-bold">{{ opnames.length }}</p>
+            </div>
+          </div>
+        </div>
 
-      <div v-else class="overflow-x-auto bg-white shadow-xl rounded-xl border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-yellow-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-center text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                No.
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Nama Bahan
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Satuan
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Stok Tercatat
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Stok Aktual
-              </th>
-              <th
-                class="px-6 py-3 text-right text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Selisih
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-yellow-700 uppercase tracking-wider"
-              >
-                Catatan
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="(item, idx) in opnames"
-              :key="item.id"
-              class="hover:bg-yellow-50 transition-colors even:bg-gray-50"
-            >
-              <td class="px-6 py-4 text-center whitespace-nowrap text-sm font-medium text-gray-800">
-                {{ idx + 1 }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ item.inventory?.name || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {{ item.inventory?.unit || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
-                {{ formatNumber(item.recorded_stock) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">
-                {{ formatNumber(item.actual_stock) }}
-              </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right"
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3a4 4 0 118 0v4M7 10h10l1 10H6l1-10z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Tanggal Opname</p>
+              <p class="text-lg font-bold">
+                {{ formatDateTime(opnames[0]?.createdAt || new Date()) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Total Selisih</p>
+              <p
+                class="text-3xl font-bold"
                 :class="{
-                  'text-red-600': item.difference < 0,
-                  'text-green-600': item.difference > 0,
-                  'text-gray-700': item.difference === 0,
+                  'text-red-200': totalDifference < 0,
+                  'text-green-200': totalDifference > 0,
+                  'text-white': totalDifference === 0,
                 }"
               >
-                {{ formatNumber(item.difference) }}
-              </td>
-              <td class="px-6 py-4 text-sm text-gray-700">{{ item.note || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
+                {{ formatNumber(totalDifference) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Status</p>
+              <p class="text-3xl font-bold">Selesai</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <RouterLink
-        to="/stock-opname"
-        class="inline-flex items-center justify-center gap-2 mt-8 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-300 transform hover:scale-105 shadow-md text-lg font-medium"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6"
-          viewBox="0 0 20 20"
-          fill="currentColor"
+      <!-- Table Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+          <h2 class="text-xl font-bold text-gray-800">Detail Stock Opname</h2>
+        </div>
+
+        <div v-if="loading" class="p-8 text-center text-gray-500">
+          <svg
+            class="animate-spin h-8 w-8 text-red-500 mx-auto mb-3"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          Memuat data stock opname...
+        </div>
+
+        <div v-else-if="opnames.length === 0" class="p-8 text-center text-gray-500">
+          <p class="mb-2">Tidak ada data stock opname untuk sesi ini.</p>
+          <p class="text-sm">Pastikan ID sesi benar atau data telah dicatat.</p>
+        </div>
+
+        <div v-else class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  No
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Nama Bahan
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Satuan
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stok Tercatat
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stok Aktual
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Selisih
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Catatan
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="(item, idx) in opnames" :key="item.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ idx + 1 }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ item.inventory?.name || '-' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ item.inventory?.unit || '-' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  {{ formatNumber(item.recorded_stock) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                  {{ formatNumber(item.actual_stock) }}
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right"
+                  :class="{
+                    'text-red-600': item.difference < 0,
+                    'text-green-600': item.difference > 0,
+                    'text-gray-700': item.difference === 0,
+                  }"
+                >
+                  {{ formatNumber(item.difference) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">{{ item.note || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Back Button -->
+      <div class="mt-8 flex justify-start">
+        <RouterLink
+          to="/stock-opname"
+          class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
         >
-          <path
-            fill-rule="evenodd"
-            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        Kembali ke Riwayat
-      </RouterLink>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Kembali ke Riwayat
+        </RouterLink>
+      </div>
     </div>
   </DefaultLayout>
 </template>

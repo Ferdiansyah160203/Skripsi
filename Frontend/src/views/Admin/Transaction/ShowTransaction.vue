@@ -1,129 +1,123 @@
 <template>
   <DefaultLayout>
-    <div
-      class="p-6 bg-gradient-to-br from-green-50 to-white min-h-screen rounded-xl shadow-lg mb-8"
-    >
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-4xl font-extrabold text-indigo-800 flex items-center gap-3">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-10 w-10 text-green-600"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3 1h10v8H5V6zm1-1h8a1 1 0 010 2H6a1 1 0 010-2z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Riwayat Transaksi Penjualan
-        </h1>
-        <button
-          @click="exportToPDF"
-          class="flex items-center gap-2 px-6 py-3 text-lg font-medium text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-lg transition duration-300 transform hover:scale-105"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M.8 9A.8.8 0 010 8.2V2.5A2.5 2.5 0 012.5 0h15A2.5 2.5 0 0120 2.5v5.7a.8.8 0 01-1.6 0V2.5a.9.9 0 00-.9-.9H2.5a.9.9 0 00-.9.9v5.7a.8.8 0 01-.8.8zM4 11a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm0 3a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 12.586L12.293 10.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L10 12.586z"
-              clip-rule="evenodd"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M10 11a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z"
-              clip-rule="evenodd"
-            />
-          </svg>
-          Export PDF
-        </button>
+    <div class="p-6 bg-gray-50 min-h-screen">
+      <!-- Search and Filter Section -->
+      <div class="bg-white rounded-lg shadow mb-6">
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Cari Transaksi</label>
+              <input
+                type="text"
+                v-model="searchQuery"
+                placeholder="Cari ID transaksi, member, atau item..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Mulai</label>
+              <input
+                type="date"
+                v-model="filterStart"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Akhir</label>
+              <input
+                type="date"
+                v-model="filterEnd"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+              />
+            </div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <button
+              @click="applyFilter"
+              class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200 flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Filter
+            </button>
+            <button
+              @click="resetFilter"
+              class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition duration-200 flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Reset
+            </button>
+          </div>
+        </div>
       </div>
-
+      <!-- Summary Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="bg-indigo-100 p-6 rounded-xl shadow-md flex items-center gap-4">
-          <div class="p-3 bg-indigo-200 rounded-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-8 w-8 text-indigo-700"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M.8 9A.8.8 0 010 8.2V2.5A2.5 2.5 0 012.5 0h15A2.5 2.5 0 0120 2.5v5.7a.8.8 0 01-1.6 0V2.5a.9.9 0 00-.9-.9H2.5a.9.9 0 00-.9.9v5.7a.8.8 0 01-.8.8zM4 11a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zm0 3a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Total Transaksi</p>
-            <p class="text-3xl font-bold text-indigo-800">{{ totalTransactions }}</p>
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Total Transaksi</p>
+              <p class="text-3xl font-bold">{{ totalTransactions }}</p>
+            </div>
           </div>
         </div>
-        <div class="bg-green-100 p-6 rounded-xl shadow-md flex items-center gap-4">
-          <div class="p-3 bg-green-200 rounded-full">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-8 w-8 text-green-700"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </div>
-          <div>
-            <p class="text-sm text-gray-600">Total Penjualan (Lunas)</p>
-            <p class="text-3xl font-bold text-green-800">Rp {{ formatCurrency(totalSales) }}</p>
+        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+          <div class="flex items-center">
+            <div class="p-3 bg-red-600 rounded-full mr-3">
+              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                ></path>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-medium">Total Penjualan</p>
+              <p class="text-3xl font-bold">Rp {{ formatCurrency(totalSales) }}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div
-        class="grid grid-cols-1 md:grid-cols-5 gap-4 bg-white p-6 rounded-xl shadow mb-8 border border-gray-200"
-      >
-        <div class="md:col-span-2">
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Cari Transaksi</label>
-          <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="Cari ID transaksi, member, atau item..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-          />
-        </div>
-        <div>
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Tanggal Mulai</label>
-          <input
-            type="date"
-            v-model="filterStart"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-          />
-        </div>
-        <div>
-          <label class="text-sm text-gray-600 font-medium mb-1 block">Tanggal Akhir</label>
-          <input
-            type="date"
-            v-model="filterEnd"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-          />
-        </div>
-        <div class="flex items-end gap-2">
+      <!-- Table Section -->
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b flex justify-between items-center">
+          <h2 class="text-xl font-bold text-gray-800">Riwayat Transaksi</h2>
           <button
-            @click="applyFilter"
-            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center gap-1"
+            @click="exportToPDF"
+            class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -133,187 +127,172 @@
             >
               <path
                 fill-rule="evenodd"
-                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
                 clip-rule="evenodd"
               />
             </svg>
-            Filter
+            Export PDF
           </button>
-          <button
-            @click="resetFilter"
-            class="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition duration-200 flex items-center justify-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M4 2a1 1 0 011 1v2.128a8.053 8.053 0 00-.977 1.63L3.774 7.3A.5.5 0 013 7.007V5a1 1 0 011-1zm14 0a1 1 0 011 1v2.128a8.053 8.053 0 01-.977 1.63L16.226 7.3A.5.5 0 0017 7.007V5a1 1 0 00-1-1h-3a1 1 0 100 2h1.595a6.002 6.002 0 00-11.168 0H6a1 1 0 100-2H4a1 1 0 011-1zm3 10a1 1 0 01-1 1H4a1 1 0 01-1-1v-2.128a8.053 8.053 0 00.977-1.63L3.774 12.7A.5.5 0 014 12.993V15a1 1 0 01-1 1h3a1 1 0 100-2H4.405a6.002 6.002 0 0011.168 0H14a1 1 0 100 2h2a1 1 0 011 1zm-3-10a1 1 0 011 1v2.128a8.053 8.053 0 01-.977 1.63L16.226 7.3A.5.5 0 0017 7.007V5a1 1 0 00-1-1h-3a1 1 0 100 2h1.595a6.002 6.002 0 0011.168 0H6a1 1 0 100-2H4a1 1 0 011-1z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            Reset
-          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  No
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  ID Transaksi
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Tanggal
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Item
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Qty Jual
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Total
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Bayar
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Kembali
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Metode
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr
+                v-for="(item, index) in paginatedTransactions"
+                :key="item.id"
+                class="hover:bg-gray-50"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ formatTransactionId(item.id) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatDateTime(item.createdAt) }}
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-500">
+                  <span
+                    v-for="i in parseItems(item.items).slice(0, 2)"
+                    :key="i.product_id"
+                    class="block"
+                  >
+                    {{ i.name }}
+                  </span>
+                  <span
+                    v-if="parseItems(item.items).length > 2"
+                    class="text-gray-400 text-xs italic"
+                  >
+                    +{{ parseItems(item.items).length - 2 }} item lainnya
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ item.quantity_sold }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  Rp{{ formatCurrency(item.final_price) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  Rp{{ formatCurrency(item.cash_paid || 0) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  Rp{{ formatCurrency(item.change || 0) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                  {{ item.payment_method }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span
+                    :class="[
+                      'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                      item.status === 'paid'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800',
+                    ]"
+                  >
+                    {{ item.status === 'paid' ? 'Lunas' : 'Belum Lunas' }}
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="filteredTransactions.length === 0">
+                <td colspan="10" class="px-6 py-8 text-center text-gray-500">
+                  <p class="mb-2">Tidak ada data transaksi yang ditemukan.</p>
+                  <p class="text-sm">Coba sesuaikan filter atau pencarian Anda.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="overflow-x-auto bg-white shadow-xl rounded-xl border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-green-50">
-            <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                No
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                ID Transaksi
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Tanggal
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Item
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Qty Jual
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Total
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Bayar
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Kembali
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Metode
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-bold text-green-700 uppercase tracking-wider"
-              >
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            <tr
-              v-for="(item, index) in paginatedTransactions"
-              :key="item.id"
-              class="hover:bg-green-50 transition duration-150"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                {{ (currentPage - 1) * itemsPerPage + index + 1 }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-                {{ formatTransactionId(item.id) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {{ formatDateTime(item.createdAt) }}
-              </td>
-
-              <td class="px-6 py-4 text-sm text-gray-700">
-                <span
-                  v-for="i in parseItems(item.items).slice(0, 2)"
-                  :key="i.product_id"
-                  class="block"
-                >
-                  {{ i.name }}
-                </span>
-                <span v-if="parseItems(item.items).length > 2" class="text-gray-500 text-xs italic">
-                  +{{ parseItems(item.items).length - 2 }} item lainnya
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                {{ item.quantity_sold }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                Rp{{ formatCurrency(item.final_price) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                Rp{{ formatCurrency(item.cash_paid || 0) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                Rp{{ formatCurrency(item.change || 0) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm capitalize text-indigo-600">
-                {{ item.payment_method }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  :class="[
-                    'px-3 py-1 rounded-full text-xs font-semibold',
-                    item.status === 'paid'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700',
-                  ]"
-                >
-                  {{ item.status === 'paid' ? 'Lunas' : 'Belum Lunas' }}
-                </span>
-              </td>
-            </tr>
-            <tr v-if="filteredTransactions.length === 0">
-              <td colspan="10" class="text-center py-10 text-gray-500 text-lg">
-                <p class="mb-2">Tidak ada data transaksi yang ditemukan.</p>
-                <p class="text-sm">Coba sesuaikan filter atau pencarian Anda.</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="flex flex-col items-center mt-6">
-        <div class="text-sm text-gray-600 mb-3">
+      <!-- Pagination -->
+      <div class="mt-6 flex flex-col sm:flex-row justify-between items-center">
+        <div class="text-sm text-gray-600 mb-4 sm:mb-0">
           Menampilkan {{ paginatedTransactions.length }} dari
           {{ filteredTransactions.length }} transaksi
         </div>
-        <div class="flex space-x-3">
+        <div class="flex items-center gap-2">
           <button
             @click="prevPage"
             :disabled="currentPage === 1"
-            class="px-4 py-2 rounded-lg border text-sm font-medium transition duration-200"
+            class="px-3 py-1 text-sm border rounded-md transition duration-200"
             :class="
               currentPage === 1
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-white hover:bg-green-100 text-green-700 border-green-300 shadow-sm'
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed border-gray-300'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             "
           >
-            Sebelumnya
+            Previous
           </button>
-          <span class="text-md font-semibold flex items-center justify-center text-green-800">
-            Halaman {{ currentPage }} dari {{ totalPages }}
-          </span>
+
+          <span class="text-sm text-gray-700"> Page {{ currentPage }} of {{ totalPages }} </span>
+
           <button
             @click="nextPage"
             :disabled="currentPage === totalPages"
-            class="px-4 py-2 rounded-lg border text-sm font-medium transition duration-200"
+            class="px-3 py-1 text-sm border rounded-md transition duration-200"
             :class="
               currentPage === totalPages
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-white hover:bg-green-100 text-green-700 border-green-300 shadow-sm'
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed border-gray-300'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
             "
           >
-            Berikutnya
+            Next
           </button>
         </div>
       </div>
@@ -323,14 +302,11 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import api from '/utils/axios' // Sesuaikan path ini
 import DefaultLayout from '@/layouts/DefaultLayout.vue' // Sesuaikan path ini
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import Swal from 'sweetalert2'
-
-const router = useRouter()
 
 // State
 const transactions = ref([]) // Semua transaksi dari API (data mentah)
@@ -553,43 +529,6 @@ function parseItems(items) {
     }
   }
   return []
-}
-
-// Aksi tombol "View Detail"
-// Admin hanya melihat detail, tidak ada markAsPaid
-// function viewDetail(id) {
-//   router.push(`/payment/${id}`) // Mengarahkan ke halaman pembayaran detail
-// }
-
-// Aksi tombol "Delete Transaction"
-async function deleteTransaction(id) {
-  const result = await Swal.fire({
-    title: 'Hapus Transaksi?',
-    html: 'Anda yakin ingin menghapus transaksi ini?<br><strong class="text-red-600">Aksi ini tidak dapat dibatalkan!</strong>',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33', // Merah untuk delete
-    cancelButtonColor: '#6c757d', // Abu-abu untuk batal
-    confirmButtonText: 'Ya, Hapus!',
-    cancelButtonText: 'Batal',
-  })
-
-  if (result.isConfirmed) {
-    try {
-      await api.delete(`/api/transactions/${id}`)
-      transactions.value = transactions.value.filter((item) => item.id !== id)
-      applyFilter()
-      Swal.fire('Berhasil!', 'Transaksi berhasil dihapus.', 'success')
-      if (currentPage.value > totalPages.value && totalPages.value > 0) {
-        currentPage.value = totalPages.value
-      } else if (totalPages.value === 0) {
-        currentPage.value = 1
-      }
-    } catch (err) {
-      console.error('Gagal menghapus transaksi:', err)
-      Swal.fire('Gagal', 'Gagal menghapus transaksi. Silakan coba lagi.', 'error')
-    }
-  }
 }
 </script>
 

@@ -1,30 +1,15 @@
 <template>
   <DefaultLayout>
-    <div
-      class="p-6 bg-gradient-to-br from-indigo-50 to-white min-h-screen rounded-xl shadow-lg mb-8"
-    >
-      <h1 class="text-4xl font-extrabold text-indigo-800 mb-8 flex items-center gap-3">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-10 w-10 text-blue-600"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M9.505 1.547a1.004 1.004 0 011.006 0L15.342 3H18a1 1 0 011 1v12a1 1 0 01-1 1h-2.658l-4.832 2.453a1.004 1.004 0 01-1.006 0L4.658 17H2a1 1 0 01-1-1V4a1 1 0 011-1h2.658l4.832-2.453zM10 11a1 1 0 100-2 1 1 0 000 2z"
-            clip-rule="evenodd"
-          />
-        </svg>
-        Buat Stock Opname Baru
-      </h1>
+    <div class="p-6 bg-gray-50 min-h-screen">
+      <!-- Header Section -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Buat Stock Opname Baru</h1>
+        <p class="text-gray-600">Lakukan pencatatan stok aktual untuk semua inventaris</p>
+      </div>
 
-      <div
-        v-if="loading"
-        class="text-center py-8 text-gray-500 text-lg bg-white rounded-xl shadow border border-gray-200"
-      >
+      <div v-if="loading" class="p-8 text-center text-gray-500 bg-white rounded-lg shadow">
         <svg
-          class="animate-spin h-8 w-8 text-indigo-500 mx-auto mb-3"
+          class="animate-spin h-8 w-8 text-red-500 mx-auto mb-3"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -48,68 +33,88 @@
 
       <div
         v-else-if="inventories.length === 0"
-        class="text-center py-10 text-gray-500 text-lg bg-white rounded-xl shadow border border-gray-200"
+        class="p-8 text-center text-gray-500 bg-white rounded-lg shadow"
       >
         <p class="mb-2">Tidak ada inventaris yang tersedia untuk stock opname.</p>
         <p class="text-sm">
           Silakan tambahkan inventaris terlebih dahulu di halaman
-          <RouterLink to="/inventories" class="text-blue-600 hover:underline">Inventaris</RouterLink
+          <RouterLink to="/inventories" class="text-red-600 hover:underline">Inventaris</RouterLink
           >.
         </p>
       </div>
 
-      <form
-        v-else
-        @submit.prevent="submitOpname"
-        class="bg-white p-6 rounded-xl shadow-xl space-y-6 border border-gray-200"
-      >
-        <div class="overflow-x-auto rounded-lg border border-gray-300 shadow-sm">
-          <table class="min-w-full text-sm text-gray-800 divide-y divide-gray-200">
-            <thead>
-              <tr class="bg-gradient-to-r from-blue-100 to-indigo-100">
-                <th class="px-4 py-3 text-center font-semibold w-12 text-gray-700">No.</th>
-                <th class="px-4 py-3 text-left font-semibold text-gray-700">Nama Bahan</th>
-                <th class="px-4 py-3 text-left font-semibold text-gray-700">Satuan</th>
-                <th class="px-4 py-3 text-right font-semibold text-gray-700">Stock Tercatat</th>
-                <th class="px-4 py-3 text-right font-semibold text-gray-700">Stock Aktual</th>
-                <th class="px-4 py-3 text-left font-semibold text-gray-700">Catatan</th>
+      <form v-else @submit.prevent="submitOpname" class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b">
+          <h2 class="text-xl font-bold text-gray-800">Daftar Inventaris</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  No
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Nama Bahan
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Satuan
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stok Tercatat
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stok Aktual
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Catatan
+                </th>
               </tr>
             </thead>
 
-            <tbody>
-              <tr
-                v-for="(item, idx) in inventories"
-                :key="item.id"
-                :class="idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'"
-                class="transition hover:bg-blue-50"
-              >
-                <td class="border-b px-4 py-3 text-center font-bold text-gray-800">
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="(item, idx) in inventories" :key="item.id" class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ idx + 1 }}
                 </td>
-                <td class="border-b px-4 py-3 text-gray-900 font-medium">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {{ item.name }}
                 </td>
-                <td class="border-b px-4 py-3 text-gray-700">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ item.unit }}
                 </td>
-                <td class="border-b px-4 py-3 text-right font-mono text-gray-700">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   {{ formatNumber(item.stock) }}
                 </td>
-                <td class="border-b px-4 py-3 text-right">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
                   <input
                     type="number"
                     min="0"
-                    class="w-24 border border-gray-300 rounded-lg px-2 py-1 text-right focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200"
+                    step="1"
+                    class="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                     v-model.number="formItems[idx].actual_stock"
                     required
                   />
                 </td>
-                <td class="border-b px-4 py-3">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <input
                     type="text"
-                    class="w-40 border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200"
+                    class="w-40 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
                     v-model="formItems[idx].note"
-                    placeholder="Opsional"
+                    placeholder="Catatan opsional"
                   />
                 </td>
               </tr>
@@ -117,14 +122,14 @@
           </table>
         </div>
 
-        <div class="flex justify-between items-center mt-6">
+        <div class="p-6 bg-gray-50 border-t flex justify-between items-center">
           <RouterLink
             to="/stock-opname"
-            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-300 transform hover:scale-105 shadow-md text-lg font-medium"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
+              class="h-5 w-5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -139,7 +144,7 @@
 
           <button
             type="submit"
-            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 shadow-md text-lg font-medium"
+            class="inline-flex items-center gap-2 px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
             :disabled="isSubmitting"
           >
             <svg
@@ -166,7 +171,7 @@
             <svg
               v-else
               xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
+              class="h-5 w-5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -176,7 +181,7 @@
                 clip-rule="evenodd"
               />
             </svg>
-            Submit Stock Opname
+            {{ isSubmitting ? 'Menyimpan...' : 'Simpan Stock Opname' }}
           </button>
         </div>
       </form>

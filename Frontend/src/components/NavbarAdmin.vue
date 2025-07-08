@@ -13,7 +13,7 @@
     </button>
 
     <!-- Title -->
-    <h1 class="text-lg font-semibold text-gray-800">Dashboard</h1>
+    <h1 class="text-lg font-semibold text-gray-800">{{ currentPageTitle }}</h1>
 
     <!-- Right side buttons -->
     <div class="flex items-center space-x-2">
@@ -57,16 +57,63 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
-import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 
 export default {
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const userRole = ref('')
 
     onMounted(() => {
       userRole.value = localStorage.getItem('userRole') || ''
+    })
+
+    // Computed property to get current page title
+    const currentPageTitle = computed(() => {
+      const path = route.path
+
+      // Map routes to their display names
+      const routeTitles = {
+        '/dashboard': 'Dashboard',
+        '/products': 'Products',
+        '/products/create': 'Create Product',
+        '/inventories': 'Inventories',
+        '/stock-opname': 'Stock Opname',
+        '/stock-opname/create': 'Create Stock Opname',
+        '/transactions': 'Report',
+        '/order': 'Order',
+        '/members': 'Member',
+        '/transaction/cashier': 'Transaction',
+        '/cek-point': 'Point Member',
+      }
+
+      // Check for exact match first
+      if (routeTitles[path]) {
+        return routeTitles[path]
+      }
+
+      // Check for partial matches (for routes with parameters)
+      for (const [routePath, title] of Object.entries(routeTitles)) {
+        if (path.startsWith(routePath)) {
+          return title
+        }
+      }
+
+      // Special cases for dynamic routes
+      if (path.includes('/stock-opname/show/')) {
+        return 'Stock Opname Detail'
+      }
+      if (path.includes('/order/')) {
+        return 'Order'
+      }
+      if (path.includes('/payment/')) {
+        return 'Payment'
+      }
+
+      // Default fallback
+      return 'Dashboard'
     })
 
     const handleLogout = () => {
@@ -83,6 +130,7 @@ export default {
       handleLogout,
       goToSettings,
       userRole,
+      currentPageTitle,
     }
   },
 }
