@@ -7,16 +7,11 @@
       isOpen ? 'md:translate-x-0' : 'md:-translate-x-full',
     ]"
   >
-    <div class="p-4 flex justify-between items-center">
-      <h2
-        class="text-2xl font-bold bg-gradient-to-r from-sky-400 to-purple-500 text-transparent bg-clip-text"
-      >
-        Kedai Delima
+    <div class="p-4 flex justify-center items-center">
+      <h2 class="text-2xl font-bold">
+        Kedai <br />
+        Delima.
       </h2>
-      <button
-        @click="$emit('toggle-sidebar')"
-        class="text-gray-500 hover:text-gray-700 focus:outline-none"
-      ></button>
     </div>
     <nav class="flex-1 overflow-y-auto">
       <ul class="py-4 space-y-1">

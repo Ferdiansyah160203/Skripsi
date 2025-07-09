@@ -75,15 +75,8 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                ></path>
-              </svg>
+            <div class="p-3 bg-white rounded-full mr-3">
+              <ArrowRightLeft class="text-red-600" />
             </div>
             <div>
               <p class="text-sm font-medium">Total Transaksi</p>
@@ -93,15 +86,8 @@
         </div>
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                ></path>
-              </svg>
+            <div class="p-3 bg-white rounded-full mr-3">
+              <ShoppingCart class="text-red-600" />
             </div>
             <div>
               <p class="text-sm font-medium">Total Penjualan</p>
@@ -302,10 +288,11 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import api from '/utils/axios' // Sesuaikan path ini
-import DefaultLayout from '@/layouts/DefaultLayout.vue' // Sesuaikan path ini
+import api from '/utils/axios'
+import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { ArrowRightLeft, ShoppingCart } from 'lucide-vue-next'
 import Swal from 'sweetalert2'
 
 // State

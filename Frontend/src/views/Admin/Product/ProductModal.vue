@@ -241,7 +241,7 @@ const form = ref({
   name: '',
   price: 0,
   description: '',
-
+  category: '',
   materials: [],
 })
 
@@ -311,8 +311,6 @@ function handleDrop(e) {
 function removeImage() {
   imageFile.value = null
   imagePreview.value = null
-  // Jika ini mode edit dan ada gambar lama, Anda mungkin perlu logika untuk menandai penghapusan gambar di backend
-  // form.value.image = null; // Contoh jika Anda menyimpan path gambar lama di form
 }
 
 // --- Form Data Management ---
@@ -327,7 +325,7 @@ async function loadProduct() {
     // form.value.available = data.available !== undefined ? data.available : true // Pastikan ketersediaan dimuat
     // Memastikan ProductMaterials ada dan di-map dengan benar
     form.value.materials = (data.ProductMaterials || []).map((m) => ({
-      inventories_id: m.inventory ? m.inventory.id : m.inventories_id, // Fleksibel untuk data yang berbeda
+      inventories_id: m.inventory ? m.inventory.id : m.inventories_id,
       quantity_used: m.quantity_used,
     }))
     imagePreview.value = data.image ? getImageUrl(data.image) : null
@@ -352,7 +350,6 @@ function resetForm() {
     price: 0,
     description: '',
     category: '',
-    available: true,
     materials: [],
   }
   imageFile.value = null
