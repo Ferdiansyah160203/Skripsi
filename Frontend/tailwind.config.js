@@ -6,6 +6,9 @@ export default {
       fontFamily: {
         sans: ['Poppins', 'sans-serif'], // Ganti default jadi Poppins
       },
+      screens: {
+        xs: '475px', // Extra small breakpoint
+      },
     },
   },
   plugins: [],

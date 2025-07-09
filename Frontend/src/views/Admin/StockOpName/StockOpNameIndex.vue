@@ -1,10 +1,82 @@
 <template>
   <DefaultLayout>
     <div class="p-6 bg-gray-50 min-h-screen">
-      <!-- Search and Actions -->
-      <div class="mb-6">
-        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div class="flex-1">
+      <!-- Desktop Header -->
+      <div class="hidden md:block mb-6">
+        <div class="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+          <!-- Search and Filters -->
+          <div class="flex flex-col lg:flex-row gap-4 flex-1">
+            <!-- Search Bar -->
+            <div class="lg:w-120">
+              <div class="relative">
+                <svg
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  v-model="searchQuery"
+                  placeholder="Cari sesi opname..."
+                  class="pl-10 pr-4 py-2.5 w-full bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <!-- Date Filters -->
+            <div class="flex items-center gap-3">
+              <input
+                type="date"
+                v-model="startDate"
+                class="px-3 py-2.5 w-50 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Tanggal mulai"
+              />
+              <span class="text-gray-500">→</span>
+              <input
+                type="date"
+                v-model="endDate"
+                class="px-3 py-2.5 w-50 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Tanggal akhir"
+              />
+            </div>
+          </div>
+
+          <!-- Create Button -->
+          <RouterLink to="/stock-opname/create">
+            <button
+              class="flex items-center gap-2 px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 whitespace-nowrap font-medium shadow-md hover:shadow-lg"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Buat Stok Opname
+            </button>
+          </RouterLink>
+        </div>
+      </div>
+
+      <!-- Mobile Header -->
+      <div class="md:hidden mb-6">
+        <div class="flex flex-col gap-4">
+          <!-- Search Bar -->
+          <div class="w-full">
             <div class="relative">
               <svg
                 class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5"
@@ -22,32 +94,42 @@
               <input
                 type="text"
                 v-model="searchQuery"
-                placeholder="Search for..."
-                class="pl-10 pr-4 py-2 w-full bg-white md:w-96 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Cari sesi opname..."
+                class="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
             </div>
           </div>
-          <div class="flex gap-4">
-            <input
-              type="date"
-              v-model="startDate"
-              class="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="Start date"
-            />
-            <span class="flex items-center text-gray-500">→</span>
-            <input
-              type="date"
-              v-model="endDate"
-              class="px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              placeholder="End date"
-            />
-            <RouterLink to="/stock-opname/create">
+
+          <!-- Date Filters and Add Button -->
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <!-- Date Range Container -->
+            <div class="flex flex-col xs:flex-row gap-3 sm:gap-4 flex-1">
+              <div class="flex flex-col xs:flex-row items-center gap-2 xs:gap-3">
+                <input
+                  type="date"
+                  v-model="startDate"
+                  class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-full xs:w-auto"
+                  placeholder="Tanggal mulai"
+                />
+                <span class="hidden xs:flex items-center text-gray-500 text-sm">→</span>
+                <span class="xs:hidden text-xs text-gray-500 self-start">sampai</span>
+                <input
+                  type="date"
+                  v-model="endDate"
+                  class="px-3 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-sm w-full xs:w-auto"
+                  placeholder="Tanggal akhir"
+                />
+              </div>
+            </div>
+
+            <!-- Create Button -->
+            <RouterLink to="/stock-opname/create" class="w-full sm:w-auto">
               <button
-                class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
+                class="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 whitespace-nowrap shadow-lg hover:shadow-xl transform hover:scale-105 font-medium w-full sm:w-auto"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
+                  class="h-4 w-4 sm:h-5 sm:w-5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -57,7 +139,7 @@
                     clip-rule="evenodd"
                   />
                 </svg>
-                Buat Stok Opname
+                <span class="text-sm sm:text-base">Buat Stok Opname</span>
               </button>
             </RouterLink>
           </div>
@@ -66,8 +148,8 @@
 
       <!-- Table Section -->
       <div class="bg-white rounded-lg shadow">
-        <div class="p-6 border-b">
-          <h2 class="text-xl font-bold text-gray-800">Riwayat Stok Opname</h2>
+        <div class="p-4 sm:p-6 border-b">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800">Riwayat Stok Opname</h2>
         </div>
 
         <div v-if="loading" class="p-8 text-center text-gray-500">
@@ -95,11 +177,27 @@
         </div>
 
         <div v-else-if="filteredOpnames.length === 0" class="p-8 text-center text-gray-500">
-          <p class="mb-2">Belum ada riwayat stock opname.</p>
-          <p class="text-sm">Klik "Buat Stok Opname" untuk memulai.</p>
+          <div class="flex flex-col items-center">
+            <svg
+              class="w-12 h-12 text-gray-300 mb-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1"
+                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+              ></path>
+            </svg>
+            <p class="text-sm font-medium mb-2">Belum ada riwayat stock opname</p>
+            <p class="text-xs text-gray-400">Klik "Buat Stok Opname" untuk memulai sesi baru</p>
+          </div>
         </div>
 
-        <div v-else class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div v-if="!loading && filteredOpnames.length > 0" class="hidden md:block overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
@@ -116,7 +214,7 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Tanggal
+                  Tanggal & Waktu
                 </th>
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -134,25 +232,29 @@
               <tr
                 v-for="(opname, index) in paginatedOpnames"
                 :key="opname.session_id"
-                class="hover:bg-gray-50"
+                class="hover:bg-gray-50 transition-colors duration-150"
               >
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {{ (currentPage - 1) * itemsPerPage + index + 1 }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ formatSessionId(opname.session_id) }}
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {{ formatSessionId(opname.session_id) }}
+                  </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {{ formatDateTime(opname.createdAt) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                   {{ opname.item_count }} item
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div class="flex space-x-2">
+                  <div class="flex space-x-3">
                     <RouterLink
                       :to="`/stock-opname/show/${opname.session_id}`"
-                      class="text-blue-600 hover:text-blue-800"
+                      class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors duration-150"
                       title="Lihat Detail"
                     >
                       <svg
@@ -171,7 +273,7 @@
                     </RouterLink>
                     <button
                       @click="deleteSession(opname.session_id)"
-                      class="text-red-600 hover:text-red-800"
+                      class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors duration-150"
                       title="Hapus Sesi"
                     >
                       <svg
@@ -182,7 +284,7 @@
                       >
                         <path
                           fill-rule="evenodd"
-                          d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                          d="M9 2a1 1 0 000 2h2a1 0 100-2H9z"
                           clip-rule="evenodd"
                         />
                         <path
@@ -199,47 +301,164 @@
           </table>
         </div>
 
+        <!-- Mobile Card View -->
+        <div
+          v-if="!loading && filteredOpnames.length > 0"
+          class="md:hidden divide-y divide-gray-200"
+        >
+          <div
+            v-for="(opname, index) in paginatedOpnames"
+            :key="opname.session_id"
+            class="p-4 hover:bg-gray-50 transition-colors duration-150"
+          >
+            <!-- Header dengan session ID dan actions -->
+            <div class="flex justify-between items-start mb-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {{ formatSessionId(opname.session_id) }}
+                  </span>
+                </div>
+                <div class="text-xs text-gray-500">
+                  Sesi #{{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                </div>
+              </div>
+              <div class="flex space-x-3 ml-3">
+                <RouterLink
+                  :to="`/stock-opname/show/${opname.session_id}`"
+                  class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-150"
+                  title="Lihat Detail"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fill-rule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </RouterLink>
+                <button
+                  @click="deleteSession(opname.session_id)"
+                  class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors duration-150"
+                  title="Hapus Sesi"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"
+                      clip-rule="evenodd"
+                    />
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Info grid -->
+            <div class="grid grid-cols-1 gap-3 text-sm">
+              <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
+                  Tanggal & Waktu
+                </div>
+                <div class="font-semibold text-gray-900">
+                  {{ formatDateTime(opname.createdAt) }}
+                </div>
+              </div>
+              <div class="bg-gray-50 rounded-lg p-3">
+                <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
+                  Jumlah Item
+                </div>
+                <div class="font-semibold text-gray-900">{{ opname.item_count }} item dicek</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div class="flex-1 flex justify-between sm:hidden">
+        <div
+          v-if="!loading && filteredOpnames.length > 0"
+          class="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50"
+        >
+          <!-- Mobile Pagination -->
+          <div class="flex justify-between items-center w-full sm:hidden">
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
             >
-              Previous
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
+                ></path>
+              </svg>
+              Prev
             </button>
+            <div class="flex items-center space-x-1">
+              <span class="text-sm text-gray-700 font-medium">Hal.</span>
+              <span class="text-sm text-gray-900 font-bold">{{ currentPage }}</span>
+              <span class="text-sm text-gray-500">dari</span>
+              <span class="text-sm text-gray-900 font-bold">{{ totalPages }}</span>
+            </div>
             <button
               @click="nextPage"
               :disabled="currentPage === totalPages"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              :class="{ 'opacity-50 cursor-not-allowed': currentPage === totalPages }"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
             >
               Next
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
             </button>
           </div>
-          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+
+          <!-- Desktop Pagination -->
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
               <p class="text-sm text-gray-700">
                 Menampilkan
-                <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
+                <span class="font-medium text-gray-900">{{
+                  (currentPage - 1) * itemsPerPage + 1
+                }}</span>
                 sampai
-                <span class="font-medium">{{
+                <span class="font-medium text-gray-900">{{
                   Math.min(currentPage * itemsPerPage, filteredOpnames.length)
                 }}</span>
                 dari
-                <span class="font-medium">{{ filteredOpnames.length }}</span>
-                hasil
+                <span class="font-medium text-gray-900">{{ filteredOpnames.length }}</span>
+                total sesi opname
               </p>
             </div>
             <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+              <nav class="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px">
                 <button
                   @click="prevPage"
                   :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  :class="{ 'opacity-50 cursor-not-allowed': currentPage === 1 }"
+                  class="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                 >
                   <span class="sr-only">Previous</span>
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -252,7 +471,7 @@
                 </button>
 
                 <span
-                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                  class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-semibold text-gray-700"
                 >
                   {{ currentPage }} / {{ totalPages }}
                 </span>
@@ -260,8 +479,7 @@
                 <button
                   @click="nextPage"
                   :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                  :class="{ 'opacity-50 cursor-not-allowed': currentPage === totalPages }"
+                  class="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
                 >
                   <span class="sr-only">Next</span>
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
