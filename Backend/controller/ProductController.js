@@ -11,13 +11,20 @@ export const getAllProducts = async (req, res) => {
     const products = await Product.findAll({
       include: {
         model: ProductMaterial,
-        include: InventoryModel, // relasi dari Product -> ProductMaterial -> Inventory
+        as: "ProductMaterials",
+        include: {
+          model: InventoryModel,
+          as: "inventory",
+        },
       },
     });
 
     res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching products", error });
+    console.error("Error in getAllProducts:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching products", error: error.message });
   }
 };
 
@@ -27,9 +34,11 @@ export const getAvailableProducts = async (req, res) => {
       include: [
         {
           model: ProductMaterial,
+          as: "ProductMaterials",
           include: [
             {
               model: InventoryModel,
+              as: "inventory",
             },
           ],
         },
@@ -62,6 +71,7 @@ export const getAvailableProducts = async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
+    console.error("Error in getAvailableProducts:", error);
     res.status(500).json({
       message: "Error fetching available products",
       error: error.message,
@@ -124,7 +134,7 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, price, description, materials } = req.body;
+  const { name, price, description, materials, category } = req.body;
   let parsedMaterials = [];
 
   try {
@@ -226,7 +236,11 @@ export const getProductById = async (req, res) => {
     const product = await Product.findByPk(id, {
       include: {
         model: ProductMaterial,
-        include: InventoryModel,
+        as: "ProductMaterials",
+        include: {
+          model: InventoryModel,
+          as: "inventory",
+        },
       },
     });
 
@@ -236,6 +250,9 @@ export const getProductById = async (req, res) => {
 
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: "Error fetching product", error });
+    console.error("Error in getProductById:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching product", error: error.message });
   }
 };

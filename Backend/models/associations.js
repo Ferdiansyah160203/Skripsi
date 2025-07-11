@@ -6,6 +6,7 @@ import ProductMaterial from "./ProductMaterialModel.js";
 Product.hasMany(ProductMaterial, {
   foreignKey: "product_id",
   onDelete: "CASCADE",
+  as: "ProductMaterials",
 });
 ProductMaterial.belongsTo(Product, {
   foreignKey: "product_id",
@@ -19,6 +20,7 @@ InventoryModel.hasMany(ProductMaterial, {
 ProductMaterial.belongsTo(InventoryModel, {
   foreignKey: "inventories_id",
   onDelete: "CASCADE",
+  as: "inventory",
 });
 
 export { Product, InventoryModel, ProductMaterial };

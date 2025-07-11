@@ -84,15 +84,50 @@
         <!-- Sales Chart -->
         <div class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
-            <h2 class="text-xl font-bold text-gray-800">Penjualan Bulanan</h2>
-            <div class="flex items-center gap-4 mt-2">
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span class="text-sm text-gray-600">Tahun saat ini</span>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">
+                  Penjualan {{ chartViewMode === 'monthly' ? 'Bulanan' : 'Harian' }}
+                </h2>
+                <div class="flex items-center gap-4 mt-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-sm text-gray-600">{{
+                      chartViewMode === 'monthly' ? 'Tahun saat ini' : 'Bulan ini'
+                    }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-pink-300 rounded-full"></div>
+                    <span class="text-sm text-gray-600">{{
+                      chartViewMode === 'monthly' ? 'Tahun lalu' : 'Bulan lalu'
+                    }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-pink-300 rounded-full"></div>
-                <span class="text-sm text-gray-600">Tahun lalu</span>
+              <!-- Toggle Buttons -->
+              <div class="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  @click="switchChartView('monthly')"
+                  :class="[
+                    'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                    chartViewMode === 'monthly'
+                      ? 'bg-white text-red-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800',
+                  ]"
+                >
+                  Bulanan
+                </button>
+                <button
+                  @click="switchChartView('daily')"
+                  :class="[
+                    'px-3 py-1 text-sm font-medium rounded-md transition-all',
+                    chartViewMode === 'daily'
+                      ? 'bg-white text-red-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800',
+                  ]"
+                >
+                  Harian
+                </button>
               </div>
             </div>
           </div>
@@ -354,6 +389,9 @@ const productChart = ref(null)
 let chartInstance = null
 let productChartInstance = null
 
+// Chart view mode - 'monthly' or 'daily'
+const chartViewMode = ref('monthly')
+
 // Dashboard data
 const dashboardData = ref({
   totalSales: 0,
@@ -368,6 +406,7 @@ const dashboardData = ref({
   products: [],
   stocks: [],
   monthlySales: [],
+  dailySales: [], // Data untuk chart harian
 })
 
 // Helper function untuk format mata uang IDR
@@ -405,14 +444,28 @@ const createSalesChart = () => {
 
   const ctx = salesChart.value.getContext('2d')
 
+  // Destroy existing chart if it exists
+  if (chartInstance) {
+    chartInstance.destroy()
+  }
+
+  // Get data based on current view mode
+  const salesData =
+    chartViewMode.value === 'monthly'
+      ? dashboardData.value.monthlySales
+      : dashboardData.value.dailySales
+
+  const currentLabel = chartViewMode.value === 'monthly' ? 'Tahun saat ini' : 'Bulan ini'
+  const previousLabel = chartViewMode.value === 'monthly' ? 'Tahun lalu' : 'Bulan lalu'
+
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: dashboardData.value.monthlySales.map((item) => item.month),
+      labels: salesData.map((item) => (chartViewMode.value === 'monthly' ? item.month : item.day)),
       datasets: [
         {
-          label: 'Tahun saat ini',
-          data: dashboardData.value.monthlySales.map((item) => item.sales),
+          label: currentLabel,
+          data: salesData.map((item) => item.sales),
           borderColor: '#EF4444',
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
           borderWidth: 3,
@@ -423,8 +476,8 @@ const createSalesChart = () => {
           pointRadius: 4,
         },
         {
-          label: 'Tahun lalu',
-          data: dashboardData.value.monthlySales.map((item) => item.sales * 0.8),
+          label: previousLabel,
+          data: salesData.map((item) => item.sales * 0.8),
           borderColor: '#F8BBD9',
           backgroundColor: 'rgba(248, 187, 217, 0.1)',
           borderWidth: 2,
@@ -461,12 +514,24 @@ const createSalesChart = () => {
   })
 }
 
+// Switch chart view between monthly and daily
+const switchChartView = (mode) => {
+  chartViewMode.value = mode
+  // Recreate chart with new data
+  createSalesChart()
+}
+
 // Create product donut chart
 const createProductChart = () => {
   if (!productChart.value) return
 
   const ctx = productChart.value.getContext('2d')
   const topProducts = dashboardData.value.topSellingProducts.slice(0, 3)
+
+  // Destroy existing chart if it exists
+  if (productChartInstance) {
+    productChartInstance.destroy()
+  }
 
   productChartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -498,20 +563,21 @@ const fetchDashboardData = async () => {
   loading.value = true
   try {
     // Fetch all dashboard data in parallel
-    const [summaryRes, topProductsRes, monthlySalesRes, productsRes, stocksRes] = await Promise.all(
-      [
+    const [summaryRes, topProductsRes, monthlySalesRes, dailySalesRes, productsRes, stocksRes] =
+      await Promise.all([
         api.get('/api/dashboard/summary'),
         api.get('/api/dashboard/top-products'),
         api.get('/api/dashboard/monthly-sales'),
+        api.get('/api/dashboard/daily-sales'),
         api.get('/api/dashboard/products'),
         api.get('/api/dashboard/stocks'),
-      ],
-    )
+      ])
 
     // Update dashboard data with API responses
     Object.assign(dashboardData.value, summaryRes.data)
     dashboardData.value.topSellingProducts = topProductsRes.data
     dashboardData.value.monthlySales = monthlySalesRes.data
+    dashboardData.value.dailySales = dailySalesRes.data
     dashboardData.value.products = productsRes.data
     dashboardData.value.stocks = stocksRes.data
 
@@ -580,6 +646,38 @@ const fetchDashboardData = async () => {
         { month: 'Oct', sales: 490000 },
         { month: 'Nov', sales: 350000 },
         { month: 'Dec', sales: 600000 },
+      ],
+      dailySales: [
+        { day: '1', sales: 15000 },
+        { day: '2', sales: 22000 },
+        { day: '3', sales: 18000 },
+        { day: '4', sales: 25000 },
+        { day: '5', sales: 30000 },
+        { day: '6', sales: 35000 },
+        { day: '7', sales: 28000 },
+        { day: '8', sales: 32000 },
+        { day: '9', sales: 27000 },
+        { day: '10', sales: 40000 },
+        { day: '11', sales: 38000 },
+        { day: '12', sales: 42000 },
+        { day: '13', sales: 45000 },
+        { day: '14', sales: 50000 },
+        { day: '15', sales: 48000 },
+        { day: '16', sales: 35000 },
+        { day: '17', sales: 30000 },
+        { day: '18', sales: 33000 },
+        { day: '19', sales: 37000 },
+        { day: '20', sales: 41000 },
+        { day: '21', sales: 44000 },
+        { day: '22', sales: 39000 },
+        { day: '23', sales: 36000 },
+        { day: '24', sales: 43000 },
+        { day: '25', sales: 47000 },
+        { day: '26', sales: 52000 },
+        { day: '27', sales: 49000 },
+        { day: '28', sales: 45000 },
+        { day: '29', sales: 51000 },
+        { day: '30', sales: 55000 },
       ],
     }
   } finally {

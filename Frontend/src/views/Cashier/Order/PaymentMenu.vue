@@ -165,15 +165,16 @@
         <p>Tidak ada produk dalam transaksi ini.</p>
       </div>
 
-      <div class="mt-6 flex flex-col sm:flex-row gap-4">
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <!-- Edit Order Button -->
         <button
           v-if="transaction && transaction.status !== 'paid'"
           @click="kembaliKeOrder"
-          class="flex-1 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200"
+          class="py-3 px-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 text-sm min-w-[120px]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
+            class="h-4 w-4 flex-shrink-0"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -183,17 +184,19 @@
               clip-rule="evenodd"
             />
           </svg>
-          Edit Order
+          <span class="hidden sm:inline">Edit Order</span>
+          <span class="sm:hidden">Edit</span>
         </button>
 
+        <!-- Mark as Paid Button -->
         <button
           v-if="transaction && transaction.status !== 'paid'"
           @click="markAsPaid"
-          class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200"
+          class="py-3 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 text-sm min-w-[120px]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
+            class="h-4 w-4 flex-shrink-0"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -203,17 +206,19 @@
               clip-rule="evenodd"
             />
           </svg>
-          Tandai sebagai Lunas
+          <span class="hidden sm:inline">Tandai Lunas</span>
+          <span class="sm:hidden">Lunas</span>
         </button>
 
+        <!-- Print Receipt Button -->
         <button
           v-if="transaction && transaction.status === 'paid'"
           @click="printReceipt"
-          class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200"
+          class="py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 text-sm min-w-[120px]"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
+            class="h-4 w-4 flex-shrink-0"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -222,16 +227,52 @@
               d="M5 4a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2H5zm0 2h10v4H5V6z"
               clip-rule="evenodd"
             />
-            <path
-              d="M.5 12.5C.5 12.223.723 12 .997 12h18.006c.274 0 .497.223.497.5v2.992c0 .274-.223.5-.497.5H.997a.5.5 0 01-.497-.5V12.5z"
-            />
+            <path d="M3 12h14v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-1z" />
+          </svg>
+          <span class="hidden sm:inline">Cetak Struk</span>
+          <span class="sm:hidden">Cetak</span>
+        </button>
+
+        <!-- Back to Transactions Button -->
+        <button
+          @click="backToTransactions"
+          class="py-3 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 text-sm min-w-[120px]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 flex-shrink-0"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path
               fill-rule="evenodd"
-              d="M10 18a1 1 0 01-1-1v-4a1 1 0 112 0v4a1 1 0 01-1 1z"
+              d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
               clip-rule="evenodd"
             />
           </svg>
-          Cetak Struk
+          <span class="hidden sm:inline">Kembali</span>
+          <span class="sm:hidden">List</span>
+        </button>
+
+        <!-- New Order Button -->
+        <button
+          @click="newOrder"
+          class="py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 text-sm min-w-[120px]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 flex-shrink-0"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span class="hidden sm:inline">Pesanan Baru</span>
+          <span class="sm:hidden">Baru</span>
         </button>
       </div>
 
@@ -420,6 +461,16 @@ function kembaliKeOrder() {
   router.push(`/order/${transactionId}`)
 }
 
+// Fungsi untuk kembali ke halaman transaksi
+function backToTransactions() {
+  router.push('/transaction/cashier')
+}
+
+// Fungsi untuk membuat pesanan baru
+function newOrder() {
+  router.push('/order')
+}
+
 // Fungsi untuk menandai transaksi sebagai lunas
 async function markAsPaid() {
   if (!transaction.value) return
@@ -434,14 +485,20 @@ async function markAsPaid() {
       title: 'Konfirmasi Pembayaran Poin',
       html: `Transaksi ini akan dibayar dengan poin.<br>Total: <strong>Rp ${formatCurrency(totalHarusDibayar)}</strong>`,
       input: 'text',
-      inputLabel: 'Masukkan Nomor HP/ID Member',
-      inputPlaceholder: 'Contoh: 0812322369',
+      inputLabel: 'Masukkan Nomor HP atau Email Member',
+      inputPlaceholder: 'Contoh: 0812322369 atau member@email.com',
       showCancelButton: true,
       confirmButtonText: 'Bayar dengan Poin',
       cancelButtonText: 'Batal',
       inputValidator: (value) => {
         if (!value) {
-          return 'Nomor member wajib diisi untuk pembayaran poin!'
+          return 'Nomor HP atau Email member wajib diisi untuk pembayaran poin!'
+        }
+        // Validasi format email atau phone
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        const phoneRegex = /^[0-9+\-\s()]+$/
+        if (!emailRegex.test(value) && !phoneRegex.test(value)) {
+          return 'Format tidak valid. Masukkan email atau nomor HP yang benar.'
         }
       },
     })
@@ -510,9 +567,29 @@ async function markAsPaid() {
       title: 'Transaksi Lunas!',
       text: `Pembayaran berhasil. ${payload.change !== undefined ? `Kembalian: Rp ${formatCurrency(payload.change)}` : ''}`,
       showConfirmButton: true,
+      confirmButtonText: 'OK',
     }).then(() => {
-      // Otomatis cetak struk setelah pembayaran lunas
-      printReceipt()
+      // Untuk pembayaran dengan poin, langsung berikan pilihan navigasi
+      if (transaction.value.payment_method === 'points') {
+        Swal.fire({
+          title: 'Pembayaran Berhasil!',
+          text: 'Apa yang ingin Anda lakukan selanjutnya?',
+          icon: 'success',
+          showCancelButton: true,
+          confirmButtonText: 'Pesanan Baru',
+          cancelButtonText: 'Lihat Transaksi',
+          allowOutsideClick: false,
+        }).then((result) => {
+          if (result.isConfirmed) {
+            newOrder()
+          } else {
+            backToTransactions()
+          }
+        })
+      } else {
+        // Untuk metode pembayaran lain, cetak struk dulu
+        printReceipt()
+      }
     })
   } catch (err) {
     const apiMessage =
@@ -524,20 +601,70 @@ async function markAsPaid() {
 
 // Fungsi untuk mencetak struk
 function printReceipt() {
+  // Buat window baru untuk print agar tidak merusak state Vue
+  const printWindow = window.open('', '_blank', 'width=400,height=600')
   const printContents = document.getElementById('receipt-print').innerHTML
-  const originalContents = document.body.innerHTML
 
-  // Sembunyikan elemen lain sebelum mencetak
-  document.body.innerHTML = printContents
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Struk Pembayaran</title>
+      <style>
+        body {
+          font-family: 'Consolas', 'Courier New', monospace;
+          font-size: 12px;
+          margin: 10px;
+          width: 300px;
+        }
+        .text-center { text-align: center; }
+        .text-xs { font-size: 10px; }
+        .text-xl { font-size: 18px; }
+        .font-bold { font-weight: bold; }
+        .mb-1 { margin-bottom: 4px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .pb-2 { padding-bottom: 8px; }
+        .pt-1 { padding-top: 4px; }
+        .border-b { border-bottom: 1px solid #000; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .italic { font-style: italic; }
+      </style>
+    </head>
+    <body>
+      ${printContents}
+    </body>
+    </html>
+  `)
 
-  // Tunggu sebentar untuk memastikan DOM dirender sebelum print
-  setTimeout(() => {
-    window.print()
-    // Kembalikan konten asli setelah cetak
-    document.body.innerHTML = originalContents
-    // Reload halaman untuk memastikan Vue.js state kembali normal (jika diperlukan)
-    // window.location.reload(); // Hanya jika ada masalah dengan Vue reactivity setelah print
-  }, 300) // Penundaan kecil
+  printWindow.document.close()
+
+  // Tunggu konten dimuat, lalu print dan tutup
+  printWindow.onload = function () {
+    setTimeout(() => {
+      printWindow.print()
+      printWindow.close()
+
+      // Berikan pilihan navigasi setelah print
+      Swal.fire({
+        title: 'Struk Telah Dicetak',
+        text: 'Apa yang ingin Anda lakukan selanjutnya?',
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonText: 'Pesanan Baru',
+        cancelButtonText: 'Lihat Transaksi',
+        allowOutsideClick: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          newOrder()
+        } else {
+          backToTransactions()
+        }
+      })
+    }, 500)
+  }
 }
 
 // Panggil loadTransaction saat komponen di-mount

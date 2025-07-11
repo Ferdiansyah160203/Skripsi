@@ -2,10 +2,10 @@
   <DefaultLayout>
     <div class="flex flex-col lg:flex-row h-screen lg:space-x-6 p-4">
       <div class="w-full lg:w-2/3 bg-white rounded-lg shadow-lg p-6 flex flex-col">
-        <h2 class="text-3xl font-extrabold text-indigo-700 mb-6 flex items-center">
+        <h2 class="text-3xl font-extrabold text-red-700 mb-6 flex items-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 mr-3 text-indigo-600"
+            class="h-8 w-8 mr-3 text-red-600"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -21,11 +21,11 @@
             type="text"
             v-model="searchQuery"
             placeholder="Cari produk..."
-            class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition"
+            class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition"
           />
           <select
             v-model="selectedCategory"
-            class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition bg-white"
+            class="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition bg-white"
           >
             <option value="">Semua Kategori</option>
             <option v-for="category in uniqueCategories" :key="category" :value="category">
@@ -43,9 +43,9 @@
               :key="product.id"
               @click="openProductModal(product)"
               :class="{
-                'border-indigo-500 ring-2 ring-indigo-300 transform scale-105 shadow-xl':
+                'border-red-500 ring-2 ring-red-300 transform scale-105 shadow-xl':
                   selectedProduct?.id === product.id,
-                'border-gray-200 hover:shadow-lg hover:border-indigo-300':
+                'border-gray-200 hover:shadow-lg hover:border-red-300':
                   selectedProduct?.id !== product.id,
               }"
               class="relative rounded-xl p-4 bg-white cursor-pointer transition-all duration-300 ease-in-out flex flex-col justify-between"
@@ -80,7 +80,7 @@
               </div>
               <div
                 v-if="selectedProduct?.id === product.id"
-                class="absolute top-2 right-2 bg-indigo-500 text-white rounded-full p-1 shadow-md"
+                class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -109,12 +109,12 @@
 
       <div class="w-full lg:w-1/3 flex flex-col gap-6 mt-6 lg:mt-0">
         <div
-          class="bg-white rounded-lg shadow-lg p-6 flex flex-col border border-indigo-100 flex-grow"
+          class="bg-white rounded-lg shadow-lg p-6 flex flex-col border border-red-100 flex-grow"
         >
-          <h2 class="text-2xl font-bold text-indigo-700 flex items-center gap-2 mb-2">
+          <h2 class="text-2xl font-bold text-red-700 flex items-center gap-2 mb-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-7 w-7 text-indigo-600"
+              class="h-7 w-7 text-red-600"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -145,7 +145,7 @@
                     v-model.number="item.quantity"
                     min="1"
                     @change="updateCartQuantity(index)"
-                    class="w-14 text-center mx-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                    class="w-14 text-center mx-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-red-300"
                   />
                   <button
                     @click="increaseCartItemQuantity(index)"
@@ -156,7 +156,7 @@
                 </div>
               </div>
               <div class="text-right flex flex-col items-end gap-1">
-                <span class="font-bold text-indigo-600 text-lg">
+                <span class="font-bold text-red-600 text-lg">
                   Rp {{ formatNumber(item.price * item.quantity) }}
                 </span>
                 <button
@@ -184,9 +184,9 @@
         </div>
 
         <div
-          class="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4 border border-indigo-100 flex-shrink-0"
+          class="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4 border border-red-100 flex-shrink-0"
         >
-          <h2 class="text-2xl font-bold text-indigo-700 mb-2">Checkout</h2>
+          <h2 class="text-2xl font-bold text-red-700 mb-2">Checkout</h2>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Nomor HP / Email Member (opsional)</label
@@ -195,8 +195,8 @@
               <input
                 v-model="memberIdentifier"
                 type="text"
-                placeholder="Masukkan ID member"
-                class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+                placeholder="Masukkan HP atau Email member"
+                class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 transition"
               />
               <button
                 @click="openModal()"
@@ -248,29 +248,39 @@
               type="number"
               min="0"
               max="100"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 transition"
             />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
             <select
               v-model="paymentMethod"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 transition bg-white"
             >
               <option value="cash">Cash</option>
               <option value="qris">QRIS</option>
-              <option value="points" :disabled="!member || memberPoints < finalPrice">
+              <option
+                value="points"
+                :disabled="!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate)"
+              >
                 Points (Poin Anda: {{ formatNumber(memberPoints) }})
               </option>
             </select>
             <p
-              v-if="paymentMethod === 'points' && (!member || memberPoints < finalPrice)"
+              v-if="
+                paymentMethod === 'points' &&
+                (!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate))
+              "
               class="text-red-500 text-xs mt-1"
             >
-              Poin tidak cukup atau member tidak terdaftar.
+              <span v-if="!member">Member tidak terdaftar.</span>
+              <span v-else
+                >Poin tidak cukup. Anda memiliki {{ formatNumber(memberPoints) }} poin, butuh
+                {{ formatNumber(Math.ceil(finalPrice / pointToRupiahRate)) }} poin.</span
+              >
             </p>
           </div>
-          <div class="mt-2 p-4 bg-indigo-50 rounded-lg shadow-sm">
+          <div class="mt-2 p-4 bg-red-50 rounded-lg shadow-sm">
             <div class="flex justify-between text-base font-semibold text-gray-800">
               <span>Subtotal:</span>
               <span>Rp {{ formatNumber(totalPrice) }}</span>
@@ -280,7 +290,7 @@
               <span>- Rp {{ formatNumber(discountAmount) }}</span>
             </div>
             <div
-              class="flex justify-between text-xl font-extrabold text-indigo-700 border-t border-indigo-200 pt-3 mt-3"
+              class="flex justify-between text-xl font-extrabold text-red-700 border-t border-red-200 pt-3 mt-3"
             >
               <span>Total Akhir:</span>
               <span>Rp {{ formatNumber(finalPrice) }}</span>
@@ -290,7 +300,8 @@
             @click="submitOrder"
             :disabled="
               cart.length === 0 ||
-              (paymentMethod === 'points' && (!member || memberPoints < finalPrice))
+              (paymentMethod === 'points' &&
+                (!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate)))
             "
             class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg mt-2"
           >
@@ -324,7 +335,7 @@
         >
           &times;
         </button>
-        <h3 class="text-2xl font-bold text-indigo-700 mb-4">{{ selectedProduct.name }}</h3>
+        <h3 class="text-2xl font-bold text-red-700 mb-4">{{ selectedProduct.name }}</h3>
         <img
           :src="getImageUrl(selectedProduct.image)"
           :alt="selectedProduct.name"
@@ -350,7 +361,7 @@
               type="number"
               v-model.number="orderQuantity"
               min="1"
-              class="w-24 text-center px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-300 text-lg"
+              class="w-24 text-center px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-300 text-lg"
             />
             <button
               @click="orderQuantity++"
@@ -363,7 +374,7 @@
 
         <button
           @click="addToCartAndCloseModal"
-          class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-xl flex items-center justify-center gap-2 transition duration-200"
+          class="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-xl flex items-center justify-center gap-2 transition duration-200"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -412,6 +423,9 @@ const editingTransactionId = ref(null)
 
 const member = ref(null) // menyimpan data member
 const memberPoints = computed(() => member.value?.total_points || 0)
+
+// Konversi poin ke rupiah (1 poin = 1000 rupiah, sesuaikan dengan aturan bisnis Anda)
+const pointToRupiahRate = 1000
 
 const modalOpen = ref(false) // Untuk modal registrasi member
 const editId = ref(null) // Digunakan untuk ModalMember jika ada mode edit di sana
@@ -637,21 +651,81 @@ async function submitOrder() {
 
   // Validasi khusus untuk pembayaran dengan poin
   if (paymentMethod.value === 'points') {
-    if (!member.value) {
+    let currentMember = member.value
+    let currentMemberIdentifier = memberIdentifier.value
+
+    // Jika belum ada member, minta input
+    if (!currentMember) {
+      const { value: inputMember } = await Swal.fire({
+        title: 'Input Member untuk Pembayaran Poin',
+        html: 'Masukkan Email atau Nomor HP member untuk pembayaran dengan poin:',
+        input: 'text',
+        inputLabel: 'Email atau Nomor HP Member',
+        inputPlaceholder: 'Contoh: member@email.com atau 0812345678',
+        inputValue: memberIdentifier.value, // Pre-fill jika sudah ada input sebelumnya
+        showCancelButton: true,
+        confirmButtonText: 'Cari Member',
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Email atau nomor HP member wajib diisi!'
+          }
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          const phoneRegex = /^[0-9+\-\s()]+$/
+          if (!emailRegex.test(value) && !phoneRegex.test(value)) {
+            return 'Format tidak valid. Masukkan email atau nomor HP yang benar.'
+          }
+        },
+      })
+
+      if (!inputMember) return // Batalkan jika user tidak input
+
+      // Cari member berdasarkan input
+      try {
+        const res = await api.get(`/api/members/${inputMember}`)
+        currentMember = res.data
+        currentMemberIdentifier = inputMember
+        // Update state
+        memberIdentifier.value = inputMember
+        member.value = currentMember
+      } catch (error) {
+        console.error('Error fetching member:', error)
+        Swal.fire('Oops!', 'Member tidak ditemukan. Pastikan email/HP sudah terdaftar.', 'error')
+        return
+      }
+    }
+
+    const requiredPoints = Math.ceil(finalPrice.value / pointToRupiahRate)
+    if (currentMember.total_points < requiredPoints) {
       Swal.fire(
         'Oops!',
-        'Anda memilih pembayaran dengan Poin, tetapi member tidak terdaftar.',
+        `Poin member tidak cukup. Member memiliki ${formatNumber(currentMember.total_points)} poin, butuh ${formatNumber(requiredPoints)} poin.`,
         'warning',
       )
       return
     }
-    if (memberPoints.value < finalPrice.value) {
-      Swal.fire(
-        'Oops!',
-        `Poin member tidak cukup (${formatNumber(memberPoints.value)} poin) untuk pembayaran sebesar Rp ${formatNumber(finalPrice.value)}.`,
-        'warning',
-      )
-      return
+
+    // Konfirmasi pembayaran dengan poin
+    const confirmResult = await Swal.fire({
+      title: 'Konfirmasi Pembayaran Poin',
+      html: `
+        <div class="text-left">
+          <p><strong>Member:</strong> ${currentMember.name}</p>
+          <p><strong>Email/HP:</strong> ${currentMemberIdentifier}</p>
+          <p><strong>Poin Tersedia:</strong> ${formatNumber(currentMember.total_points)} poin</p>
+          <p><strong>Poin Dibutuhkan:</strong> ${formatNumber(requiredPoints)} poin</p>
+          <p><strong>Total Pembayaran:</strong> Rp ${formatNumber(finalPrice.value)}</p>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Bayar dengan Poin',
+      cancelButtonText: 'Batal',
+      allowOutsideClick: false,
+    })
+
+    if (!confirmResult.isConfirmed) {
+      return // Batalkan jika user tidak konfirmasi
     }
   }
 
@@ -662,6 +736,7 @@ async function submitOrder() {
     products: cart.value.map((i) => ({
       product_id: i.product_id,
       quantity_sold: i.quantity,
+      used_points: i.used_points || 0, // Kirim used_points jika ada promo
     })),
     final_price: finalPrice.value, // Kirim harga akhir ke backend
   }
@@ -675,22 +750,62 @@ async function submitOrder() {
       Swal.fire({
         icon: 'success',
         title: 'Pesanan berhasil diperbarui!',
-        text: `Pesanan ID: ${trxId}`,
+        text: `Pesanan ID: ${trxId}. Kembali ke halaman pembayaran.`,
         showConfirmButton: true,
+        confirmButtonText: 'OK',
+      }).then(() => {
+        // Arahkan kembali ke halaman pembayaran setelah update
+        router.push(`/payment/${trxId}`)
       })
     } else {
       // Mode baru: POST request
       res = await api.post('/api/transactions/create', payload)
       trxId = res.data.transaction.id // Ambil ID transaksi baru dari respons
-      Swal.fire({
-        icon: 'success',
-        title: 'Pesanan berhasil diproses!',
-        text: `Pesanan ID: ${trxId}. Lanjutkan ke pembayaran.`,
-        showConfirmButton: true,
-      })
-    }
 
-    router.push(`/payment/${trxId}`) // Arahkan ke halaman pembayaran dengan ID transaksi
+      if (paymentMethod.value === 'points') {
+        // Untuk pembayaran dengan poin, transaksi langsung lunas
+        Swal.fire({
+          icon: 'success',
+          title: 'Pembayaran Berhasil!',
+          text: `Pesanan ID: ${trxId} telah dibayar dengan poin.`,
+          showConfirmButton: true,
+          confirmButtonText: 'OK',
+        }).then(() => {
+          // Reset form dan kembali ke halaman order baru
+          cart.value = []
+          paymentMethod.value = 'cash'
+          discount.value = 0
+          memberIdentifier.value = ''
+          member.value = null
+
+          Swal.fire({
+            title: 'Transaksi Selesai!',
+            text: 'Apa yang ingin Anda lakukan selanjutnya?',
+            icon: 'success',
+            showCancelButton: true,
+            confirmButtonText: 'Pesanan Baru',
+            cancelButtonText: 'Lihat Transaksi',
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Tetap di halaman order untuk pesanan baru
+              location.reload() // Reset halaman untuk pesanan baru
+            } else {
+              router.push('/transaction/cashier')
+            }
+          })
+        })
+      } else {
+        // Untuk metode pembayaran lain, lanjut ke halaman pembayaran
+        Swal.fire({
+          icon: 'success',
+          title: 'Pesanan berhasil diproses!',
+          text: `Pesanan ID: ${trxId}. Lanjutkan ke pembayaran.`,
+          showConfirmButton: true,
+        })
+        router.push(`/payment/${trxId}`) // Arahkan ke halaman pembayaran dengan ID transaksi
+      }
+    }
   } catch (err) {
     console.error('Gagal memproses pesanan:', err.response?.data || err.message)
     Swal.fire(

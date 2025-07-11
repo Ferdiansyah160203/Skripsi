@@ -88,16 +88,68 @@ export const createTransaction = async (req, res) => {
     const final_price = total_price - discountAmount;
     const change = cash_paid - final_price;
 
+    // === Proses pembayaran dengan POIN langsung saat create ===
+    if (payment_method === "points") {
+      if (!member_identifier) {
+        return res.status(400).json({
+          message: "Member identifier is required for points payment",
+        });
+      }
+
+      if (!member) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+
+      // Hitung total poin yang dibutuhkan
+      const productIds = products.map((item) => item.product_id);
+      const promos = await PointPromo.findAll({
+        where: {
+          product_id: productIds,
+          is_active: true,
+        },
+      });
+
+      let totalUsedPoints = 0;
+
+      // Update items dengan used_points dari promo
+      for (const item of items) {
+        const promo = promos.find((p) => p.product_id === item.product_id);
+        if (promo) {
+          const usedPoints = promo.point_cost * item.qty;
+          item.used_points = usedPoints;
+          totalUsedPoints += usedPoints;
+        }
+      }
+
+      // Jika tidak ada promo, gunakan konversi harga ke poin (asumsi: 1000 rupiah = 1 poin)
+      if (totalUsedPoints === 0) {
+        totalUsedPoints = Math.ceil(final_price / 1000);
+      }
+
+      if (member.total_points < totalUsedPoints) {
+        return res.status(400).json({
+          message: "Insufficient points",
+          required_points: totalUsedPoints,
+          available_points: member.total_points,
+        });
+      }
+
+      // Kurangi poin member
+      member.total_points -= totalUsedPoints;
+      await member.save();
+    }
+
     const transaction = await Transaction.create({
       total_price,
       final_price,
       payment_method,
       discount: discountAmount,
       quantity_sold,
-      status: "unpaid",
+      status: payment_method === "points" ? "paid" : "unpaid", // Langsung paid jika pakai poin
       members_id: member ? member.id : null,
       items: JSON.stringify(items),
-      cash_paid,
+      cash_paid: payment_method === "points" ? 0 : cash_paid,
+      change: payment_method === "points" ? 0 : change,
       change,
     });
 
