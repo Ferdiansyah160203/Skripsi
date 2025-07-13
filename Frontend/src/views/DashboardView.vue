@@ -11,12 +11,14 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-white rounded-full mr-3">
+            <div class="p-3 bg-red-50 rounded-full">
               <ShoppingCart class="text-red-600" />
             </div>
-            <div class="">
+            <div class="flex-wrap">
               <p class="text-sm font-medium">Total Penjualan</p>
-              <p class="text-2xl font-bold">Rp. {{ formatCurrency(dashboardData.totalSales) }}</p>
+              <p class="text-2xl font-bold px-2">
+                Rp. {{ formatCurrency(dashboardData.totalSales) }}
+              </p>
               <p class="text-xs text-red-200">
                 <span :class="dashboardData.salesGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
                   {{ dashboardData.salesGrowth >= 0 ? '+' : '' }}{{ dashboardData.salesGrowth }}%

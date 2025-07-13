@@ -35,8 +35,13 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-white rounded-full mr-3">
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -54,8 +59,13 @@
 
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-white rounded-full mr-3">
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -75,8 +85,13 @@
 
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-white rounded-full mr-3">
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -103,8 +118,13 @@
 
         <div class="bg-red-500 text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-red-600 rounded-full mr-3">
-              <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-white rounded-full mr-3">
+              <svg
+                class="h-6 w-6 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"

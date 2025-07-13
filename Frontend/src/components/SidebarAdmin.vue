@@ -147,6 +147,7 @@ const navItems = computed(() => {
       { label: 'Inventories', to: '/inventories', icon: Box },
       { label: 'Stock Opname', to: '/stock-opname', icon: PackageCheck },
       { label: 'Report', to: '/transactions', icon: FileText },
+      { label: 'User Management', to: '/users', icon: Users },
     ]
   } else if (userRole.value === 'cashier') {
     return [

@@ -2,17 +2,10 @@
   <DefaultLayout>
     <div class="flex flex-col lg:flex-row h-screen lg:space-x-6 p-4">
       <div class="w-full lg:w-2/3 bg-white rounded-lg shadow-lg p-6 flex flex-col">
-        <h2 class="text-3xl font-extrabold text-red-700 mb-6 flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 mr-3 text-red-600"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 012.586 13H4v1a1 1 0 011 1h.586l.707.707A1 1 0 017 17h6a1 1 0 01.707-.293l.707-.707H15v-1h1.414a1 1 0 01.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 110-6 3 3 0 010 6z"
-            />
-          </svg>
+        <h2 class="text-2xl font-extrabold text-red-700 mb-6 flex items-center">
+          <div class="p-3 bg-red-50 rounded-full mr-3">
+            <CircleFadingPlus class="" />
+          </div>
           Pilih Menu
         </h2>
 
@@ -62,7 +55,7 @@
                 </p>
               </div>
               <div class="mt-3 flex items-center justify-between">
-                <p class="text-md font-bold text-sky-600">Rp {{ formatNumber(product.price) }}</p>
+                <p class="text-md font-bold text-[#DB3A40]">Rp {{ formatNumber(product.price) }}</p>
                 <span
                   v-if="getPromoForProduct(product)"
                   class="text-xs font-semibold text-green-600 bg-green-50 px-1 py-0.5 rounded-full flex items-center gap-1"
@@ -112,16 +105,9 @@
           class="bg-white rounded-lg shadow-lg p-6 flex flex-col border border-red-100 flex-grow"
         >
           <h2 class="text-2xl font-bold text-red-700 flex items-center gap-2 mb-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-7 w-7 text-red-600"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.5 14 6.333 14H15a1 1 0 000-2H6.333a.25.25 0 01-.25-.25V6.5h11.177l-.49 2.077a2 2 0 001.996 2.41L18 14H5c-1.5 0-2.675-1.39-2.75-3.15-.01-.01-.01-.02-.01-.03-.02-.09-.03-.017-.03-.25L3 4H1a1 1 0 000-2h2zM7 18a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z"
-              />
-            </svg>
+            <div class="p-3 bg-red-50 rounded-full mr-3">
+              <ShoppingCart />
+            </div>
             Keranjang
           </h2>
           <ul v-if="cart.length > 0" class="space-y-3 max-h-56 overflow-y-auto pr-2 pb-2 flex-grow">
@@ -156,7 +142,7 @@
                 </div>
               </div>
               <div class="text-right flex flex-col items-end gap-1">
-                <span class="font-bold text-red-600 text-lg">
+                <span class="font-bold text-[#DB3A40] text-lg">
                   Rp {{ formatNumber(item.price * item.quantity) }}
                 </span>
                 <button
@@ -177,7 +163,7 @@
             <span>Jumlah Item:</span>
             <span>{{ totalItems }}</span>
           </div>
-          <div class="flex justify-between text-base font-bold text-indigo-800 flex-shrink-0">
+          <div class="flex justify-between text-base font-bold text-[#DB3A40] flex-shrink-0">
             <span>Total Harga:</span>
             <span>Rp {{ formatNumber(totalPrice) }}</span>
           </div>
@@ -186,7 +172,12 @@
         <div
           class="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4 border border-red-100 flex-shrink-0"
         >
-          <h2 class="text-2xl font-bold text-red-700 mb-2">Checkout</h2>
+          <h2 class="text-2xl font-extrabold text-red-700 mb-6 flex items-center">
+            <div class="p-3 bg-red-50 rounded-full mr-3">
+              <ShoppingBasket class="" />
+            </div>
+            Checkout
+          </h2>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1"
               >Nomor HP / Email Member (opsional)</label
@@ -200,7 +191,7 @@
               />
               <button
                 @click="openModal()"
-                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm font-medium transition"
+                class="px-4 py-2 bg-[#DB3A40] hover:bg-[#db3a3fe0] text-white rounded-md text-sm font-medium transition"
               >
                 Daftar Member
               </button>
@@ -399,6 +390,7 @@ import { useRoute, useRouter } from 'vue-router'
 import DefaultLayout from '@/layouts/DefaultLayout.vue' // Sesuaikan path ini
 import api from '/utils/axios.js' // Sesuaikan path ini
 import Swal from 'sweetalert2'
+import { ShoppingCart, CircleFadingPlus, ShoppingBasket } from 'lucide-vue-next'
 import ModalMember from '../Member/ModalMember.vue' // Sesuaikan path ini
 
 const route = useRoute()

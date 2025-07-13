@@ -17,6 +17,8 @@ import StockOpName from '@/views/Admin/StockOpName/StockOpNameCreate.vue'
 import StockOpNameIndex from '@/views/Admin/StockOpName/StockOpNameIndex.vue'
 import StockOpNameShow from '@/views/Admin/StockOpName/StockOpNameShow.vue'
 
+import UserView from '@/views/Admin/User/UserView.vue'
+
 import PointMember from '@/views/PointMember.vue'
 
 // (Opsional) Halaman 403 jika ingin
@@ -37,6 +39,12 @@ const router = createRouter({
       path: '/inventories',
       name: 'inventories',
       component: ShowInventories,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: UserView,
       meta: { requiresAuth: true, allowedRoles: ['admin'] },
     },
     {
@@ -105,7 +113,6 @@ const router = createRouter({
       name: 'cek-point',
       component: PointMember,
     },
-    
 
     // Untuk Akses yang tidak diizinkan
     {

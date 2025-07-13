@@ -5,20 +5,8 @@
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg
-                class="w-6 h-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                />
-              </svg>
+            <div class="w-10 h-10 bg-[#DB3A40] rounded-full flex items-center justify-center">
+              <UsersRound class="text-white" />
             </div>
             <div>
               <h1 class="text-2xl font-bold text-gray-900">Manajemen Member</h1>
@@ -27,7 +15,7 @@
           </div>
           <button
             @click="openModal()"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-[#DB3A40] text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
           >
             <PlusIcon class="w-4 h-4" />
             Tambah Member Baru
@@ -318,6 +306,7 @@ import { ref, onMounted, computed, watch } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue' // Sesuaikan path ini
 import ModalMember from './ModalMember.vue' // Sesuaikan path ini
 import { PlusIcon, PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/solid'
+import { UsersRound } from 'lucide-vue-next' // Menggunakan icon dari lucide-vue-next
 import Swal from 'sweetalert2'
 import api from '/utils/axios' // Sesuaikan path ini
 
