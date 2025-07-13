@@ -119,6 +119,12 @@
               <div>
                 <span class="block font-semibold text-gray-800">{{ item.name }}</span>
                 <span class="text-sm text-gray-600">Rp {{ formatNumber(item.price) }}</span>
+                <span
+                  v-if="item.has_promo && item.promo_point_cost"
+                  class="text-xs text-green-600 bg-green-50 px-1 py-0.5 rounded block mt-1"
+                >
+                  Promo: {{ item.promo_point_cost }} poin/item
+                </span>
                 <div class="flex items-center mt-1 gap-2">
                   <button
                     @click="decreaseCartItemQuantity(index)"
@@ -196,23 +202,40 @@
                 Daftar Member
               </button>
             </div>
-            <p v-if="member" class="text-sm text-green-700 mt-2 flex items-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 mr-1"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-              Member: <strong>{{ member.name }}</strong> (Poin:
-              <strong>{{ formatNumber(memberPoints) }}</strong
-              >)
-            </p>
+            <div v-if="member" class="text-sm text-green-700 mt-2">
+              <div class="flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                Member: <strong>{{ member.name }}</strong> (Poin:
+                <strong>{{ formatNumber(memberPoints) }}</strong
+                >)
+              </div>
+              <div class="text-xs text-gray-600 mt-1 bg-gray-50 p-2 rounded">
+                <div v-if="canPayWithPoints">
+                  Butuh {{ formatNumber(requiredPoints) }} poin untuk produk promo
+                </div>
+                <div v-else>Pembayaran poin hanya untuk produk dengan promo poin</div>
+                <div
+                  v-if="canPayWithPoints && memberPoints >= requiredPoints"
+                  class="text-green-600 font-semibold"
+                >
+                  ✓ Poin mencukupi untuk pembayaran!
+                </div>
+                <div v-else-if="canPayWithPoints" class="text-red-600 font-semibold">
+                  ✗ Kurang {{ formatNumber(requiredPoints - memberPoints) }} poin
+                </div>
+              </div>
+            </div>
             <p
               v-else-if="memberIdentifier && memberIdentifier.length > 0 && !member"
               class="text-sm text-red-600 mt-2"
@@ -252,23 +275,28 @@
               <option value="qris">QRIS</option>
               <option
                 value="points"
-                :disabled="!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate)"
+                :disabled="!member || !canPayWithPoints || memberPoints < requiredPoints"
+                v-if="canPayWithPoints"
               >
-                Points (Poin Anda: {{ formatNumber(memberPoints) }})
+                Points (Poin Anda: {{ formatNumber(memberPoints) }} | Butuh:
+                {{ formatNumber(requiredPoints) }})
               </option>
             </select>
             <p
-              v-if="
-                paymentMethod === 'points' &&
-                (!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate))
-              "
+              v-if="paymentMethod === 'points' && (!member || memberPoints < requiredPoints)"
               class="text-red-500 text-xs mt-1"
             >
               <span v-if="!member">Member tidak terdaftar.</span>
-              <span v-else
-                >Poin tidak cukup. Anda memiliki {{ formatNumber(memberPoints) }} poin, butuh
-                {{ formatNumber(Math.ceil(finalPrice / pointToRupiahRate)) }} poin.</span
+              <span v-else-if="!canPayWithPoints"
+                >Tidak semua item dalam keranjang memiliki promo poin.</span
               >
+              <span v-else>
+                Poin tidak cukup. Anda memiliki {{ formatNumber(memberPoints) }} poin, butuh
+                {{ formatNumber(requiredPoints) }} poin.
+              </span>
+            </p>
+            <p v-if="!canPayWithPoints && cart.length > 0" class="text-orange-500 text-xs mt-1">
+              💡 Tips: Pembayaran dengan poin hanya tersedia untuk produk yang memiliki promo poin.
             </p>
           </div>
           <div class="mt-2 p-4 bg-red-50 rounded-lg shadow-sm">
@@ -292,7 +320,7 @@
             :disabled="
               cart.length === 0 ||
               (paymentMethod === 'points' &&
-                (!member || memberPoints < Math.ceil(finalPrice / pointToRupiahRate)))
+                (!member || !canPayWithPoints || memberPoints < requiredPoints))
             "
             class="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg mt-2"
           >
@@ -416,8 +444,31 @@ const editingTransactionId = ref(null)
 const member = ref(null) // menyimpan data member
 const memberPoints = computed(() => member.value?.total_points || 0)
 
-// Konversi poin ke rupiah (1 poin = 1000 rupiah, sesuaikan dengan aturan bisnis Anda)
-const pointToRupiahRate = 1000
+// Computed untuk menghitung poin yang dibutuhkan (hanya untuk produk dengan promo poin)
+const requiredPoints = computed(() => {
+  let totalPromoPoints = 0
+
+  cart.value.forEach((item) => {
+    const promo = promos.value.find((p) => p.product_id === item.product_id)
+    if (promo && promo.point_cost) {
+      // Hanya hitung produk yang memiliki promo poin
+      totalPromoPoints += promo.point_cost * item.quantity
+    }
+  })
+
+  return totalPromoPoints
+})
+
+// Computed untuk mengecek apakah semua item dalam cart bisa dibayar dengan poin
+const canPayWithPoints = computed(() => {
+  if (cart.value.length === 0) return false
+
+  // Semua item harus memiliki promo poin untuk bisa bayar dengan poin
+  return cart.value.every((item) => {
+    const promo = promos.value.find((p) => p.product_id === item.product_id)
+    return promo && promo.point_cost
+  })
+})
 
 const modalOpen = ref(false) // Untuk modal registrasi member
 const editId = ref(null) // Digunakan untuk ModalMember jika ada mode edit di sana
@@ -508,12 +559,26 @@ async function loadTransaction(id) {
     isEditMode.value = true
     const items = typeof trx.items === 'string' ? JSON.parse(trx.items) : trx.items
 
-    cart.value = items.map((item) => ({
-      product_id: item.product_id,
-      name: item.name,
-      price: item.price,
-      quantity: item.qty || item.quantity,
-    }))
+    cart.value = items.map((item) => {
+      // Cari produk dari data products untuk mendapatkan nama yang benar
+      const product = products.value.find((p) => p.id === item.product_id)
+      const promo = promos.value.find((p) => p.product_id === item.product_id)
+
+      const cartItem = {
+        product_id: item.product_id,
+        name: product ? product.name : item.name || 'Produk tidak tersedia',
+        price: item.price,
+        quantity: item.qty || item.quantity,
+      }
+
+      // Tambahkan informasi promo jika ada
+      if (promo && promo.point_cost) {
+        cartItem.promo_point_cost = promo.point_cost
+        cartItem.has_promo = true
+      }
+
+      return cartItem
+    })
 
     paymentMethod.value = trx.payment_method
     discount.value = trx.discount
@@ -560,15 +625,30 @@ function addToCart() {
   }
 
   const existing = cart.value.find((i) => i.product_id === selectedProduct.value.id)
+  const promo = getPromoForProduct(selectedProduct.value)
+
   if (existing) {
     existing.quantity += orderQuantity.value
+    // Update promo info jika belum ada
+    if (promo && promo.point_cost && !existing.has_promo) {
+      existing.promo_point_cost = promo.point_cost
+      existing.has_promo = true
+    }
   } else {
-    cart.value.push({
+    const cartItem = {
       product_id: selectedProduct.value.id,
       name: selectedProduct.value.name,
       price: selectedProduct.value.price,
       quantity: orderQuantity.value,
-    })
+    }
+
+    // Tambahkan informasi promo jika ada
+    if (promo && promo.point_cost) {
+      cartItem.promo_point_cost = promo.point_cost
+      cartItem.has_promo = true
+    }
+
+    cart.value.push(cartItem)
   }
   Swal.fire({
     icon: 'success',
@@ -643,6 +723,16 @@ async function submitOrder() {
 
   // Validasi khusus untuk pembayaran dengan poin
   if (paymentMethod.value === 'points') {
+    // Cek apakah semua item memiliki promo poin
+    if (!canPayWithPoints.value) {
+      Swal.fire(
+        'Oops!',
+        'Tidak semua item dalam keranjang memiliki promo poin. Pembayaran dengan poin hanya tersedia untuk produk dengan promo poin.',
+        'warning',
+      )
+      return
+    }
+
     let currentMember = member.value
     let currentMemberIdentifier = memberIdentifier.value
 
@@ -687,11 +777,11 @@ async function submitOrder() {
       }
     }
 
-    const requiredPoints = Math.ceil(finalPrice.value / pointToRupiahRate)
-    if (currentMember.total_points < requiredPoints) {
+    const requiredPointsValue = requiredPoints.value
+    if (currentMember.total_points < requiredPointsValue) {
       Swal.fire(
         'Oops!',
-        `Poin member tidak cukup. Member memiliki ${formatNumber(currentMember.total_points)} poin, butuh ${formatNumber(requiredPoints)} poin.`,
+        `Poin member tidak cukup. Member memiliki ${formatNumber(currentMember.total_points)} poin, butuh ${formatNumber(requiredPointsValue)} poin untuk produk promo.`,
         'warning',
       )
       return
@@ -705,8 +795,8 @@ async function submitOrder() {
           <p><strong>Member:</strong> ${currentMember.name}</p>
           <p><strong>Email/HP:</strong> ${currentMemberIdentifier}</p>
           <p><strong>Poin Tersedia:</strong> ${formatNumber(currentMember.total_points)} poin</p>
-          <p><strong>Poin Dibutuhkan:</strong> ${formatNumber(requiredPoints)} poin</p>
-          <p><strong>Total Pembayaran:</strong> Rp ${formatNumber(finalPrice.value)}</p>
+          <p><strong>Poin Dibutuhkan:</strong> ${formatNumber(requiredPointsValue)} poin (promo)</p>
+          <p><strong>Item Promo:</strong> ${cart.value.length} produk dengan promo poin</p>
         </div>
       `,
       icon: 'question',
@@ -725,11 +815,17 @@ async function submitOrder() {
     payment_method: paymentMethod.value,
     discount: discount.value,
     member_identifier: memberIdentifier.value || null, // Menggunakan null jika kosong
-    products: cart.value.map((i) => ({
-      product_id: i.product_id,
-      quantity_sold: i.quantity,
-      used_points: i.used_points || 0, // Kirim used_points jika ada promo
-    })),
+    products: cart.value.map((i) => {
+      const promo = promos.value.find((p) => p.product_id === i.product_id)
+      return {
+        product_id: i.product_id,
+        quantity_sold: i.quantity,
+        used_points:
+          paymentMethod.value === 'points' && promo && promo.point_cost
+            ? promo.point_cost * i.quantity
+            : 0,
+      }
+    }),
     final_price: finalPrice.value, // Kirim harga akhir ke backend
   }
 
@@ -755,37 +851,15 @@ async function submitOrder() {
       trxId = res.data.transaction.id // Ambil ID transaksi baru dari respons
 
       if (paymentMethod.value === 'points') {
-        // Untuk pembayaran dengan poin, transaksi langsung lunas
+        // Untuk pembayaran dengan poin, arahkan ke detail pembayaran
         Swal.fire({
           icon: 'success',
-          title: 'Pembayaran Berhasil!',
-          text: `Pesanan ID: ${trxId} telah dibayar dengan poin.`,
+          title: 'Pesanan berhasil diproses!',
+          text: `Pesanan ID: ${trxId}. Lanjutkan ke pembayaran dengan poin.`,
           showConfirmButton: true,
-          confirmButtonText: 'OK',
+          confirmButtonText: 'Lanjut ke Pembayaran',
         }).then(() => {
-          // Reset form dan kembali ke halaman order baru
-          cart.value = []
-          paymentMethod.value = 'cash'
-          discount.value = 0
-          memberIdentifier.value = ''
-          member.value = null
-
-          Swal.fire({
-            title: 'Transaksi Selesai!',
-            text: 'Apa yang ingin Anda lakukan selanjutnya?',
-            icon: 'success',
-            showCancelButton: true,
-            confirmButtonText: 'Pesanan Baru',
-            cancelButtonText: 'Lihat Transaksi',
-            allowOutsideClick: false,
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Tetap di halaman order untuk pesanan baru
-              location.reload() // Reset halaman untuk pesanan baru
-            } else {
-              router.push('/transaction/cashier')
-            }
-          })
+          router.push(`/payment/${trxId}`) // Arahkan ke halaman pembayaran dengan ID transaksi
         })
       } else {
         // Untuk metode pembayaran lain, lanjut ke halaman pembayaran
