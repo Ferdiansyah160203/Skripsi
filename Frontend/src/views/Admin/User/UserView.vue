@@ -397,7 +397,6 @@
 
 <script>
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import axios from 'axios'
 import api from '/utils/axios'
 import Swal from 'sweetalert2'
 
@@ -548,7 +547,7 @@ export default {
     },
 
     async createUser() {
-      await axios.post('http://localhost:5000/api/register', {
+      await api.post('/api/users/register', {
         name: this.form.name,
         email: this.form.email,
         password: this.form.password,

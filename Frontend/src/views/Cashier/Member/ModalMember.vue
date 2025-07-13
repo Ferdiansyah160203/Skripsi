@@ -2,7 +2,7 @@
   <transition name="fade">
     <div
       v-if="show"
-      class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center px-4"
+      class="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center px-4"
     >
       <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-8 relative animate-fade-in">
         <div class="flex justify-between items-center mb-6">
@@ -64,10 +64,16 @@
             <input
               v-model="form.phone"
               type="text"
-              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-sky-500 focus:border-sky-500 transition duration-200"
+              :class="[
+                'w-full border rounded-lg px-4 py-2 focus:ring-sky-500 focus:border-sky-500 transition duration-200',
+                phoneError ? 'border-red-500 bg-red-50' : 'border-gray-300',
+              ]"
               placeholder="Contoh: 081234567890"
               required
+              @input="validatePhone"
             />
+            <p v-if="phoneError" class="text-red-500 text-xs mt-1">{{ phoneError }}</p>
+            <p class="text-gray-500 text-xs mt-1">Minimal 9 angka, maksimal 13 angka</p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Email (opsional)</label>
@@ -88,7 +94,13 @@
             </button>
             <button
               type="submit"
-              class="px-5 py-2.5 text-base font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg shadow-md transition duration-200 transform hover:scale-105"
+              :disabled="!!phoneError"
+              :class="[
+                'px-5 py-2.5 text-base font-medium rounded-lg shadow-md transition duration-200 transform',
+                phoneError
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  : 'bg-sky-600 hover:bg-sky-700 text-white hover:scale-105',
+              ]"
             >
               Simpan Data
             </button>
@@ -112,10 +124,12 @@ const emit = defineEmits(['close', 'saved'])
 
 const form = ref({ name: '', phone: '', email: '' })
 const isEdit = ref(false)
+const phoneError = ref('')
 
 watch(
   () => props.editId,
   async (newId) => {
+    phoneError.value = '' // Reset error saat mode berubah
     if (newId) {
       isEdit.value = true
       try {
@@ -139,9 +153,45 @@ function close() {
   emit('close')
   // Reset form setelah modal ditutup, untuk mencegah data lama muncul saat dibuka lagi
   form.value = { name: '', phone: '', email: '' }
+  phoneError.value = ''
+}
+
+function validatePhone() {
+  const phone = form.value.phone
+  // Hapus semua karakter non-digit
+  const cleanPhone = phone.replace(/\D/g, '')
+
+  // Update form dengan nomor yang sudah dibersihkan
+  form.value.phone = cleanPhone
+
+  // Validasi panjang nomor
+  if (cleanPhone.length < 9) {
+    phoneError.value = 'Nomor telepon minimal 9 angka'
+  } else if (cleanPhone.length > 13) {
+    phoneError.value = 'Nomor telepon maksimal 13 angka'
+    // Potong nomor jika lebih dari 13 digit
+    form.value.phone = cleanPhone.substring(0, 13)
+  } else {
+    phoneError.value = ''
+  }
 }
 
 async function handleSubmit() {
+  // Validasi nomor telepon sebelum submit
+  validatePhone()
+
+  if (phoneError.value) {
+    Swal.fire('Validasi Error', phoneError.value, 'warning')
+    return
+  }
+
+  // Validasi panjang nomor telepon final
+  const cleanPhone = form.value.phone.replace(/\D/g, '')
+  if (cleanPhone.length < 9 || cleanPhone.length > 13) {
+    Swal.fire('Validasi Error', 'Nomor telepon harus antara 9-13 angka', 'warning')
+    return
+  }
+
   try {
     if (isEdit.value) {
       const { data } = await api.put(`/api/members/${props.editId}`, form.value)

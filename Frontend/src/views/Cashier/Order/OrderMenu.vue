@@ -104,12 +104,21 @@
         <div
           class="bg-white rounded-lg shadow-lg p-6 flex flex-col border border-red-100 flex-grow"
         >
-          <h2 class="text-2xl font-bold text-red-700 flex items-center gap-2 mb-2">
-            <div class="p-3 bg-red-50 rounded-full mr-3">
-              <ShoppingCart />
-            </div>
-            Keranjang
-          </h2>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-2xl font-bold text-red-700 flex items-center gap-2">
+              <div class="p-3 bg-red-50 rounded-full mr-3">
+                <ShoppingCart />
+              </div>
+              Keranjang
+            </h2>
+            <button
+              v-if="cart.length > 0 && !isEditMode"
+              @click="clearCart"
+              class="text-xs text-red-500 hover:text-red-700 px-2 py-1 border border-red-300 rounded hover:bg-red-50 transition"
+            >
+              Reset
+            </button>
+          </div>
           <ul v-if="cart.length > 0" class="space-y-3 max-h-56 overflow-y-auto pr-2 pb-2 flex-grow">
             <li
               v-for="(item, index) in cart"
@@ -444,6 +453,69 @@ const editingTransactionId = ref(null)
 const member = ref(null) // menyimpan data member
 const memberPoints = computed(() => member.value?.total_points || 0)
 
+// Fungsi untuk save cart ke localStorage
+function saveCartToLocalStorage() {
+  try {
+    localStorage.setItem('order_cart', JSON.stringify(cart.value))
+    localStorage.setItem('order_discount', discount.value.toString())
+    localStorage.setItem('order_payment_method', paymentMethod.value)
+    localStorage.setItem('order_member_identifier', memberIdentifier.value)
+  } catch (error) {
+    console.warn('Gagal menyimpan cart ke localStorage:', error)
+  }
+}
+
+// Fungsi untuk load cart dari localStorage
+function loadCartFromLocalStorage() {
+  try {
+    const savedCart = localStorage.getItem('order_cart')
+    const savedDiscount = localStorage.getItem('order_discount')
+    const savedPaymentMethod = localStorage.getItem('order_payment_method')
+    const savedMemberIdentifier = localStorage.getItem('order_member_identifier')
+
+    if (savedCart) {
+      const parsedCart = JSON.parse(savedCart)
+      // Update informasi promo untuk setiap item berdasarkan data terbaru
+      cart.value = parsedCart.map((item) => {
+        const promo = promos.value.find((p) => p.product_id === item.product_id)
+        if (promo && promo.point_cost) {
+          item.promo_point_cost = promo.point_cost
+          item.has_promo = true
+        }
+        return item
+      })
+    }
+    if (savedDiscount) {
+      discount.value = parseFloat(savedDiscount) || 0
+    }
+    if (savedPaymentMethod) {
+      paymentMethod.value = savedPaymentMethod
+    }
+    if (savedMemberIdentifier) {
+      memberIdentifier.value = savedMemberIdentifier
+    }
+  } catch (error) {
+    console.warn('Gagal memuat cart dari localStorage:', error)
+    // Reset ke default jika ada error
+    cart.value = []
+    discount.value = 0
+    paymentMethod.value = 'cash'
+    memberIdentifier.value = ''
+  }
+}
+
+// Fungsi untuk clear cart dari localStorage
+function clearCartFromLocalStorage() {
+  try {
+    localStorage.removeItem('order_cart')
+    localStorage.removeItem('order_discount')
+    localStorage.removeItem('order_payment_method')
+    localStorage.removeItem('order_member_identifier')
+  } catch (error) {
+    console.warn('Gagal menghapus cart dari localStorage:', error)
+  }
+}
+
 // Computed untuk menghitung poin yang dibutuhkan (hanya untuk produk dengan promo poin)
 const requiredPoints = computed(() => {
   let totalPromoPoints = 0
@@ -546,6 +618,18 @@ watch(
   { immediate: true }, // Memanggil fetchMember saat komponen pertama kali dimuat jika memberIdentifier sudah ada
 )
 
+// Watcher untuk menyimpan cart ke localStorage setiap ada perubahan
+watch(
+  [cart, discount, paymentMethod, memberIdentifier],
+  () => {
+    // Jangan save jika sedang dalam mode edit
+    if (!isEditMode.value) {
+      saveCartToLocalStorage()
+    }
+  },
+  { deep: true },
+)
+
 // Fungsi untuk memuat data transaksi yang ada (untuk mode edit)
 async function loadTransaction(id) {
   try {
@@ -554,6 +638,9 @@ async function loadTransaction(id) {
     if (!trx) {
       throw new Error('Data transaksi tidak ditemukan.')
     }
+
+    // Clear localStorage saat masuk mode edit
+    clearCartFromLocalStorage()
 
     editingTransactionId.value = trx.id
     isEditMode.value = true
@@ -608,7 +695,11 @@ onMounted(async () => {
 
   const id = route.params.id
   if (id) {
+    // Mode edit: load transaction
     await loadTransaction(id)
+  } else {
+    // Mode normal: load cart dari localStorage
+    loadCartFromLocalStorage()
   }
 })
 
@@ -672,7 +763,35 @@ function removeFromCart(index) {
   }).then((result) => {
     if (result.isConfirmed) {
       cart.value.splice(index, 1)
+      // Jika cart kosong, clear localStorage
+      if (cart.value.length === 0) {
+        clearCartFromLocalStorage()
+      }
       Swal.fire('Dihapus!', 'Item berhasil dihapus.', 'success')
+    }
+  })
+}
+
+// Fungsi untuk clear semua item di cart
+function clearCart() {
+  Swal.fire({
+    title: 'Reset Keranjang?',
+    text: 'Semua item dalam keranjang akan dihapus!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Ya, reset!',
+    cancelButtonText: 'Batal',
+  }).then((result) => {
+    if (result.isConfirmed) {
+      cart.value = []
+      discount.value = 0
+      paymentMethod.value = 'cash'
+      memberIdentifier.value = ''
+      member.value = null
+      clearCartFromLocalStorage()
+      Swal.fire('Reset!', 'Keranjang berhasil dikosongkan.', 'success')
     }
   })
 }
@@ -859,6 +978,8 @@ async function submitOrder() {
           showConfirmButton: true,
           confirmButtonText: 'Lanjut ke Pembayaran',
         }).then(() => {
+          // Clear cart dari localStorage setelah berhasil
+          clearCartFromLocalStorage()
           router.push(`/payment/${trxId}`) // Arahkan ke halaman pembayaran dengan ID transaksi
         })
       } else {
@@ -868,6 +989,9 @@ async function submitOrder() {
           title: 'Pesanan berhasil diproses!',
           text: `Pesanan ID: ${trxId}. Lanjutkan ke pembayaran.`,
           showConfirmButton: true,
+        }).then(() => {
+          // Clear cart dari localStorage setelah berhasil
+          clearCartFromLocalStorage()
         })
         router.push(`/payment/${trxId}`) // Arahkan ke halaman pembayaran dengan ID transaksi
       }
