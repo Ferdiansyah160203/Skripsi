@@ -9,74 +9,107 @@
 
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
-          <div class="flex items-center">
-            <div class="p-3 bg-red-50 rounded-full">
-              <ShoppingCart class="text-red-600" />
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center">
+              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+                <ShoppingCart class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Penjualan</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  Rp. {{ formatCurrency(dashboardData.totalSales) }}
+                </p>
+              </div>
             </div>
-            <div class="flex-wrap">
-              <p class="text-sm font-medium">Total Penjualan</p>
-              <p class="text-2xl font-bold px-2">
-                Rp. {{ formatCurrency(dashboardData.totalSales) }}
-              </p>
-              <p class="text-xs text-red-200">
-                <span :class="dashboardData.salesGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
-                  {{ dashboardData.salesGrowth >= 0 ? '+' : '' }}{{ dashboardData.salesGrowth }}%
-                </span>
-              </p>
-            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full mt-5"
+              :class="
+                dashboardData.salesGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.salesGrowth >= 0 ? '+' : '' }}{{ dashboardData.salesGrowth }}%
+            </span>
           </div>
         </div>
 
-        <div class="bg-white text-white p-4 rounded-lg shadow">
-          <div class="flex items-center">
-            <div class="p-3 bg-[#DB3A40] rounded-md mr-3">
-              <Repeat class="text-white" />
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center">
+              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+                <Repeat class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Order</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {{ formatNumber(dashboardData.totalOrders) }}
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-black text-gray-400">Total Order</p>
-              <p class="text-2xl font-bold">{{ formatNumber(dashboardData.totalOrders) }}</p>
-              <p class="text-xs text-red-200">
-                <span :class="dashboardData.ordersGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
-                  {{ dashboardData.ordersGrowth >= 0 ? '+' : '' }}{{ dashboardData.ordersGrowth }}%
-                </span>
-              </p>
-            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full mt-5"
+              :class="
+                dashboardData.ordersGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.ordersGrowth >= 0 ? '+' : '' }}{{ dashboardData.ordersGrowth }}%
+            </span>
           </div>
         </div>
 
-        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
-          <div class="flex items-center">
-            <div class="p-3 bg-white rounded-full mr-3">
-              <Users class="text-red-600" />
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center">
+              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+                <Users class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Member</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {{ formatNumber(dashboardData.totalMembers) }}
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-medium">Total Member</p>
-              <p class="text-2xl font-bold">{{ formatNumber(dashboardData.totalMembers) }}</p>
-              <p class="text-xs text-red-200">
-                <span :class="dashboardData.membersGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
-                  {{ dashboardData.membersGrowth >= 0 ? '+' : ''
-                  }}{{ dashboardData.membersGrowth }}%
-                </span>
-              </p>
-            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full mt-5"
+              :class="
+                dashboardData.membersGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.membersGrowth >= 0 ? '+' : '' }}{{ dashboardData.membersGrowth }}%
+            </span>
           </div>
         </div>
 
-        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
-          <div class="flex items-center">
-            <div class="p-3 bg-white rounded-md mr-3">
-              <Award class="text-red-600" />
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center">
+              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+                <Award class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Poin Member</p>
+                <p class="text-2xl font-bold text-gray-900">
+                  {{ formatNumber(dashboardData.totalMemberPoints) }}
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="text-sm font-medium">Total Poin Member</p>
-              <p class="text-2xl font-bold">{{ formatNumber(dashboardData.totalMemberPoints) }}</p>
-              <p class="text-xs text-red-200">
-                <span :class="dashboardData.pointsGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
-                  {{ dashboardData.pointsGrowth >= 0 ? '+' : '' }}{{ dashboardData.pointsGrowth }}%
-                </span>
-              </p>
-            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full mt-5"
+              :class="
+                dashboardData.pointsGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.pointsGrowth >= 0 ? '+' : '' }}{{ dashboardData.pointsGrowth }}%
+            </span>
           </div>
         </div>
       </div>
