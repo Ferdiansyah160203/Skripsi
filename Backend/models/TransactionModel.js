@@ -51,6 +51,10 @@ const Transaction = db.define(
       allowNull: true,
       defaultValue: 0,
     },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     freezeTableName: true,

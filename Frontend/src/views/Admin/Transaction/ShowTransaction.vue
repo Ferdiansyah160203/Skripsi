@@ -175,6 +175,11 @@
                 >
                   Status
                 </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Catatan
+                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -193,13 +198,19 @@
                   {{ formatDateTime(item.createdAt) }}
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-500">
-                  <span
+                  <div
                     v-for="i in parseItems(item.items).slice(0, 2)"
                     :key="i.product_id"
-                    class="block"
+                    class="mb-1"
                   >
-                    {{ i.name }}
-                  </span>
+                    <span class="block font-medium">{{ i.name }}</span>
+                    <span
+                      v-if="i.item_notes"
+                      class="text-xs text-blue-700 bg-blue-50 px-1 py-0.5 rounded"
+                    >
+                      📝 {{ i.item_notes }}
+                    </span>
+                  </div>
                   <span
                     v-if="parseItems(item.items).length > 2"
                     class="text-gray-400 text-xs italic"
@@ -234,9 +245,21 @@
                     {{ item.status === 'paid' ? 'Lunas' : 'Belum Lunas' }}
                   </span>
                 </td>
+                <!-- Tambahkan kolom untuk catatan -->
+                <td class="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                  <div v-if="item.notes" class="truncate" :title="item.notes">
+                    <span class="text-blue-700 bg-blue-50 px-2 py-1 rounded text-xs">
+                      📝
+                      {{
+                        item.notes.length > 30 ? item.notes.substring(0, 30) + '...' : item.notes
+                      }}
+                    </span>
+                  </div>
+                  <span v-else class="text-gray-400 text-xs italic">Tidak ada catatan</span>
+                </td>
               </tr>
               <tr v-if="filteredTransactions.length === 0">
-                <td colspan="10" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="11" class="px-6 py-8 text-center text-gray-500">
                   <p class="mb-2">Tidak ada data transaksi yang ditemukan.</p>
                   <p class="text-sm">Coba sesuaikan filter atau pencarian Anda.</p>
                 </td>
@@ -443,6 +466,7 @@ function exportToPDF() {
     // Tampilan item di PDF juga diubah tanpa ()
     const itemNames = itemsArr.map((i) => `${i.name} x ${i.qty || i.quantity_sold || 1}`).join(', ')
     const displayItems = itemNames.length > 50 ? itemNames.substring(0, 47) + '...' : itemNames
+    const notes = t.notes ? (t.notes.length > 30 ? t.notes.substring(0, 27) + '...' : t.notes) : '-'
 
     return [
       index + 1,
@@ -455,6 +479,7 @@ function exportToPDF() {
       `Rp${formatCurrency(t.change || 0)}`,
       t.payment_method,
       t.status === 'paid' ? 'Lunas' : 'Belum Lunas',
+      notes, // Tambahkan kolom notes di PDF
     ]
   })
 
@@ -472,7 +497,8 @@ function exportToPDF() {
         'Kembali',
         'Metode',
         'Status',
-      ], // Tambah header Qty Jual
+        'Catatan',
+      ], // Tambah header Qty Jual dan Catatan
     ],
     body: rows,
     styles: { fontSize: 7, cellPadding: 1, overflow: 'linebreak' },
@@ -509,6 +535,8 @@ function parseItems(items) {
         subtotal:
           item.subtotal || item.price * (item.qty || item.quantity || item.quantity_sold || 1) || 0,
         price: item.price || 0,
+        product_id: item.product_id,
+        item_notes: item.item_notes || null, // Include item_notes
       }))
     } catch (e) {
       console.error('Error parsing items JSON:', e, 'Raw data:', items)

@@ -13,6 +13,7 @@ export const createTransaction = async (req, res) => {
     member_identifier,
     products,
     cash_paid = 0,
+    notes = null, // Tambahkan parameter notes
   } = req.body;
 
   const items = [];
@@ -46,6 +47,7 @@ export const createTransaction = async (req, res) => {
       }
 
       const used_points = item.used_points || 0;
+      const item_notes = item.item_notes || null; // Tambahkan item_notes
       const subTotal = foundProduct.price * item.quantity_sold;
 
       items.push({
@@ -55,6 +57,7 @@ export const createTransaction = async (req, res) => {
         qty: item.quantity_sold,
         subtotal: subTotal,
         used_points,
+        item_notes, // Simpan item_notes
       });
 
       total_price += subTotal;
@@ -150,7 +153,7 @@ export const createTransaction = async (req, res) => {
       items: JSON.stringify(items),
       cash_paid: payment_method === "points" ? 0 : cash_paid,
       change: payment_method === "points" ? 0 : change,
-      change,
+      notes: notes, // Simpan notes ke database
     });
 
     // Simpan detail transaksi per produk
@@ -161,6 +164,7 @@ export const createTransaction = async (req, res) => {
         quantity_sold: item.qty,
         price: item.price,
         used_points: item.used_points,
+        item_notes: item.item_notes, // Simpan item_notes per produk
       });
     }
 
@@ -178,7 +182,12 @@ export const createTransaction = async (req, res) => {
 
 export const updateTransaction = async (req, res) => {
   const { id } = req.params;
-  const { payment_method, discount = 0, products = [] } = req.body;
+  const {
+    payment_method,
+    discount = 0,
+    products = [],
+    notes = null,
+  } = req.body;
 
   try {
     const transaction = await Transaction.findByPk(id);
@@ -206,6 +215,7 @@ export const updateTransaction = async (req, res) => {
         price: product.price,
         qty: item.quantity_sold,
         subtotal,
+        item_notes: item.item_notes || null, // Tambahkan item_notes
       });
 
       await TransactionProduct.create({
@@ -213,6 +223,7 @@ export const updateTransaction = async (req, res) => {
         product_id: item.product_id,
         quantity_sold: item.quantity_sold,
         price: product.price,
+        item_notes: item.item_notes || null, // Simpan item_notes
       });
     }
 
@@ -225,6 +236,7 @@ export const updateTransaction = async (req, res) => {
     transaction.final_price = finalPrice;
     transaction.quantity_sold = quantitySold;
     transaction.items = JSON.stringify(updatedItems);
+    transaction.notes = notes; // Update notes juga
 
     await transaction.save();
 
@@ -253,10 +265,11 @@ export const getTransactionById = async (req, res) => {
 
     const mappedItems = items.map((item) => ({
       product_id: item.product_id,
-      name: item.Product?.name || "Nama tidak tersedia",
+      name: item.product?.name || "Nama tidak tersedia", // Gunakan lowercase 'product'
       qty: item.quantity_sold,
       price: item.price,
       subtotal: item.quantity_sold * item.price,
+      item_notes: item.item_notes || null, // Include item_notes
     }));
 
     const response = {
@@ -303,11 +316,12 @@ export const markAsPaid = async (req, res) => {
 
     const parsedItems = items.map((item) => ({
       product_id: item.product_id,
-      name: item.Product?.name || "Nama tidak tersedia",
+      name: item.product?.name || "Nama tidak tersedia", // Gunakan lowercase 'product'
       qty: item.quantity_sold,
       price: item.price,
       subtotal: item.quantity_sold * item.price,
       used_points: item.used_points || 0,
+      item_notes: item.item_notes || null, // Include item_notes
     }));
 
     const productIds = parsedItems.map((item) => item.product_id);

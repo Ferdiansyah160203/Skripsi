@@ -28,13 +28,13 @@
           </div>
         </div>
 
-        <div class="bg-red-500 text-white p-4 rounded-lg shadow">
+        <div class="bg-white text-white p-4 rounded-lg shadow">
           <div class="flex items-center">
-            <div class="p-3 bg-white rounded-full mr-3">
-              <Repeat class="text-red-600" />
+            <div class="p-3 bg-[#DB3A40] rounded-md mr-3">
+              <Repeat class="text-white" />
             </div>
             <div>
-              <p class="text-sm font-medium">Total Order</p>
+              <p class="text-sm font-black text-gray-400">Total Order</p>
               <p class="text-2xl font-bold">{{ formatNumber(dashboardData.totalOrders) }}</p>
               <p class="text-xs text-red-200">
                 <span :class="dashboardData.ordersGrowth >= 0 ? 'text-green-300' : 'text-red-300'">
@@ -166,7 +166,19 @@
         <!-- Best Selling Products with Donut Chart -->
         <div class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
-            <h2 class="text-xl font-bold text-gray-800">Produk Terlaris</h2>
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-xl font-bold text-gray-800">Produk Terlaris</h2>
+                <div class="flex items-center gap-4 mt-2">
+                  <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span class="text-sm text-gray-600">Periode ini</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Placeholder for alignment -->
+              <div class="w-32"></div>
+            </div>
           </div>
           <div class="p-6">
             <div v-if="loading" class="text-center py-8 text-gray-500">
@@ -266,11 +278,6 @@
                   >
                     Status
                   </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Aksi
-                  </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -300,9 +307,6 @@
                     >
                       {{ product.status }}
                     </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button class="text-blue-600 hover:text-blue-900">...</button>
                   </td>
                 </tr>
               </tbody>

@@ -134,6 +134,15 @@
                 >
                   Promo: {{ item.promo_point_cost }} poin/item
                 </span>
+                <!-- Tambahkan input untuk catatan per item -->
+                <div class="mt-2">
+                  <input
+                    type="text"
+                    v-model="item.item_notes"
+                    placeholder="Catatan (less sugar, extra hot, dll)"
+                    class="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-red-300 focus:border-red-300"
+                  />
+                </div>
                 <div class="flex items-center mt-1 gap-2">
                   <button
                     @click="decreaseCartItemQuantity(index)"
@@ -273,6 +282,22 @@
               max="100"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 transition"
             />
+          </div>
+
+          <!-- Tambahkan input untuk notes/catatan pesanan -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Catatan Pesanan (Opsional)</label
+            >
+            <textarea
+              v-model="notes"
+              placeholder="Contoh: Kopi susu less sugar, extra hot, tanpa es..."
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 transition resize-none"
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+              Masukkan catatan khusus untuk pesanan Anda (gula kurang, extra panas, dll)
+            </p>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Metode Pembayaran</label>
@@ -447,6 +472,7 @@ const cart = ref([])
 const discount = ref(0)
 const paymentMethod = ref('cash')
 const memberIdentifier = ref('')
+const notes = ref('') // Tambahkan state untuk notes
 const isEditMode = ref(false)
 const editingTransactionId = ref(null)
 
@@ -460,6 +486,7 @@ function saveCartToLocalStorage() {
     localStorage.setItem('order_discount', discount.value.toString())
     localStorage.setItem('order_payment_method', paymentMethod.value)
     localStorage.setItem('order_member_identifier', memberIdentifier.value)
+    localStorage.setItem('order_notes', notes.value) // Simpan notes
   } catch (error) {
     console.warn('Gagal menyimpan cart ke localStorage:', error)
   }
@@ -472,6 +499,7 @@ function loadCartFromLocalStorage() {
     const savedDiscount = localStorage.getItem('order_discount')
     const savedPaymentMethod = localStorage.getItem('order_payment_method')
     const savedMemberIdentifier = localStorage.getItem('order_member_identifier')
+    const savedNotes = localStorage.getItem('order_notes') // Load notes
 
     if (savedCart) {
       const parsedCart = JSON.parse(savedCart)
@@ -494,6 +522,9 @@ function loadCartFromLocalStorage() {
     if (savedMemberIdentifier) {
       memberIdentifier.value = savedMemberIdentifier
     }
+    if (savedNotes) {
+      notes.value = savedNotes
+    }
   } catch (error) {
     console.warn('Gagal memuat cart dari localStorage:', error)
     // Reset ke default jika ada error
@@ -501,6 +532,7 @@ function loadCartFromLocalStorage() {
     discount.value = 0
     paymentMethod.value = 'cash'
     memberIdentifier.value = ''
+    notes.value = ''
   }
 }
 
@@ -511,6 +543,7 @@ function clearCartFromLocalStorage() {
     localStorage.removeItem('order_discount')
     localStorage.removeItem('order_payment_method')
     localStorage.removeItem('order_member_identifier')
+    localStorage.removeItem('order_notes') // Hapus notes juga
   } catch (error) {
     console.warn('Gagal menghapus cart dari localStorage:', error)
   }
@@ -620,7 +653,7 @@ watch(
 
 // Watcher untuk menyimpan cart ke localStorage setiap ada perubahan
 watch(
-  [cart, discount, paymentMethod, memberIdentifier],
+  [cart, discount, paymentMethod, memberIdentifier, notes], // Tambahkan notes ke watcher
   () => {
     // Jangan save jika sedang dalam mode edit
     if (!isEditMode.value) {
@@ -656,6 +689,7 @@ async function loadTransaction(id) {
         name: product ? product.name : item.name || 'Produk tidak tersedia',
         price: item.price,
         quantity: item.qty || item.quantity,
+        item_notes: item.item_notes || '', // Load item_notes dari backend
       }
 
       // Tambahkan informasi promo jika ada
@@ -669,6 +703,7 @@ async function loadTransaction(id) {
 
     paymentMethod.value = trx.payment_method
     discount.value = trx.discount
+    notes.value = trx.notes || '' // Load notes dari transaction
     memberIdentifier.value = trx.member_identifier || ''
     if (memberIdentifier.value) {
       await fetchMember()
@@ -731,6 +766,7 @@ function addToCart() {
       name: selectedProduct.value.name,
       price: selectedProduct.value.price,
       quantity: orderQuantity.value,
+      item_notes: '', // Inisialisasi item_notes sebagai string kosong
     }
 
     // Tambahkan informasi promo jika ada
@@ -789,6 +825,7 @@ function clearCart() {
       discount.value = 0
       paymentMethod.value = 'cash'
       memberIdentifier.value = ''
+      notes.value = '' // Reset notes juga
       member.value = null
       clearCartFromLocalStorage()
       Swal.fire('Reset!', 'Keranjang berhasil dikosongkan.', 'success')
@@ -934,6 +971,7 @@ async function submitOrder() {
     payment_method: paymentMethod.value,
     discount: discount.value,
     member_identifier: memberIdentifier.value || null, // Menggunakan null jika kosong
+    notes: notes.value || null, // Kirim notes ke backend
     products: cart.value.map((i) => {
       const promo = promos.value.find((p) => p.product_id === i.product_id)
       return {
@@ -943,6 +981,7 @@ async function submitOrder() {
           paymentMethod.value === 'points' && promo && promo.point_cost
             ? promo.point_cost * i.quantity
             : 0,
+        item_notes: i.item_notes || null, // Kirim item_notes per produk
       }
     }),
     final_price: finalPrice.value, // Kirim harga akhir ke backend

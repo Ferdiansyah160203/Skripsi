@@ -95,6 +95,13 @@
             <span class="font-semibold">ID Member:</span>
             <span>{{ transaction.member_identifier }}</span>
           </div>
+          <!-- Tambahkan bagian untuk menampilkan notes -->
+          <div v-if="transaction.notes" class="border-t border-gray-300 pt-3 mt-3">
+            <span class="font-semibold text-gray-700 block mb-2">Catatan Pesanan:</span>
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+              <p class="text-blue-800 text-sm leading-relaxed">{{ transaction.notes }}</p>
+            </div>
+          </div>
         </div>
 
         <div class="space-y-3">
@@ -153,6 +160,12 @@
               <p class="text-sm text-gray-600">
                 {{ item.quantity }} x Rp {{ formatCurrency(item.price) }}
               </p>
+              <!-- Tampilkan catatan item jika ada -->
+              <div v-if="item.item_notes" class="mt-1">
+                <span class="text-xs text-blue-700 bg-blue-50 px-2 py-1 rounded-full">
+                  📝 {{ item.item_notes }}
+                </span>
+              </div>
             </div>
             <span class="font-semibold text-gray-800">Rp {{ formatCurrency(item.subtotal) }}</span>
           </div>
@@ -405,50 +418,27 @@ const formatDateTime = (val) => {
 // Fungsi untuk memuat data transaksi dari API
 async function loadTransaction() {
   try {
-    const [transRes, productsRes] = await Promise.all([
-      api.get(`/api/transactions/${transactionId}`),
-      api.get('/api/products/available'), // Ambil daftar produk untuk mencocokkan nama item
-    ])
-
+    const transRes = await api.get(`/api/transactions/${transactionId}`)
     let trxData = transRes.data
 
-    // Pastikan transaction_details atau items adalah array dan parse jika string
-    let rawItems = []
-    if (typeof trxData.transaction_details === 'string') {
-      rawItems = JSON.parse(trxData.transaction_details)
-    } else if (Array.isArray(trxData.transaction_details)) {
-      rawItems = trxData.transaction_details
-    } else if (typeof trxData.items === 'string') {
-      // Fallback for older data format
-      rawItems = JSON.parse(trxData.items)
-    } else if (Array.isArray(trxData.items)) {
-      // Fallback for older data format
-      rawItems = trxData.items
-    }
+    // Gunakan data items yang sudah di-join dari backend
+    // Backend sudah mengembalikan items dengan nama produk yang benar dari TransactionProduct + Product join
+    const items = trxData.items || []
 
-    const products = productsRes.data
-
-    // Mapping item transaksi dengan detail produk
-    const items = rawItems.map((item) => {
-      const product = products.find((p) => p.id === item.product_id) || {}
-      const price = item.price || product.price || 0
-      const quantity = item.quantity || item.quantity_sold || 1
-      const subtotal = item.subtotal || price * quantity // Use subtotal from backend if available, else calculate
-      return {
-        product_id: item.product_id,
-        name: product.name || 'Produk Tidak Diketahui',
-        price: price,
-        quantity: quantity,
-        subtotal: subtotal,
-      }
-    })
-
-    const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0)
+    // Hitung total quantity dari items yang ada
+    const totalQuantity = items.reduce((sum, i) => sum + i.qty, 0)
 
     transaction.value = {
       ...trxData,
-      items: items, // Menggunakan array items yang sudah divalidasi dan di-map
-      quantity_sold: totalQuantity, // Menggunakan totalQuantity dari item yang di-map
+      items: items.map((item) => ({
+        product_id: item.product_id,
+        name: item.name, // Nama sudah benar dari backend join
+        price: item.price,
+        quantity: item.qty,
+        subtotal: item.subtotal,
+        item_notes: item.item_notes, // Include item_notes
+      })),
+      quantity_sold: totalQuantity,
     }
   } catch (error) {
     console.error('Gagal memuat data transaksi:', error)

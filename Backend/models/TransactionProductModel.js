@@ -16,6 +16,17 @@ const TransactionProduct = db.define(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    item_notes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment:
+        "Catatan khusus untuk item ini (misal: less sugar, extra hot, dll)",
+    },
+    used_points: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
   },
   {
     freezeTableName: true,
