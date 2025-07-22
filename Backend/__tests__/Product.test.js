@@ -211,7 +211,7 @@ describe("Product Controller", () => {
           category: "nasi",
           description: "Test description",
           image: "/uploads/test.jpg",
-          available: false, // One material has insufficient stock
+          available: true, // Semua produk selalu available sekarang
         },
       ]);
     });
@@ -247,7 +247,7 @@ describe("Product Controller", () => {
           category: "nasi",
           description: "Test description",
           image: "/uploads/test.jpg",
-          available: false, // Inventory is null
+          available: true, // Semua produk selalu available sekarang
         },
       ]);
     });
