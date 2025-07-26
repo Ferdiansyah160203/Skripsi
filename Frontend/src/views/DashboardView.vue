@@ -134,7 +134,7 @@
                   <div class="flex items-center gap-2">
                     <div class="w-3 h-3 bg-pink-300 rounded-full"></div>
                     <span class="text-sm text-gray-600">{{
-                      chartViewMode === 'monthly' ? 'Bulan lalu' : 'Hari lalu'
+                      chartViewMode === 'monthly' ? 'Bulan lalu' : 'Kemarin'
                     }}</span>
                   </div>
                 </div>
@@ -735,22 +735,32 @@ const createSalesChart = () => {
   }
 
   // Get data based on current view mode
-  const salesData =
+  const currentData =
     chartViewMode.value === 'monthly'
       ? dashboardData.value.monthlySales
       : dashboardData.value.dailySales
 
-  const currentLabel = chartViewMode.value === 'monthly' ? 'Tahun saat ini' : 'Bulan ini'
-  const previousLabel = chartViewMode.value === 'monthly' ? 'Tahun lalu' : 'Bulan lalu'
+  // Get previous period data (you should fetch this from API)
+  const previousData =
+    chartViewMode.value === 'monthly'
+      ? dashboardData.value.previousYearSales ||
+        dashboardData.value.monthlySales.map((item) => ({ ...item, sales: item.sales * 0.7 }))
+      : dashboardData.value.previousMonthSales ||
+        dashboardData.value.dailySales.map((item) => ({ ...item, sales: item.sales * 0.8 }))
+
+  const currentLabel = chartViewMode.value === 'monthly' ? 'Bulan ini' : 'Hari ini'
+  const previousLabel = chartViewMode.value === 'monthly' ? 'Bulan lalu' : 'Kemarin'
 
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: salesData.map((item) => (chartViewMode.value === 'monthly' ? item.month : item.day)),
+      labels: currentData.map((item) =>
+        chartViewMode.value === 'monthly' ? item.month : item.day,
+      ),
       datasets: [
         {
           label: currentLabel,
-          data: salesData.map((item) => item.sales),
+          data: currentData.map((item) => item.sales),
           borderColor: '#EF4444',
           backgroundColor: 'rgba(239, 68, 68, 0.1)',
           borderWidth: 3,
@@ -762,7 +772,7 @@ const createSalesChart = () => {
         },
         {
           label: previousLabel,
-          data: salesData.map((item) => item.sales * 0.8),
+          data: previousData.map((item) => item.sales),
           borderColor: '#F8BBD9',
           backgroundColor: 'rgba(248, 187, 217, 0.1)',
           borderWidth: 2,
@@ -852,15 +862,25 @@ const fetchDashboardData = async () => {
 
   try {
     // Fetch all dashboard data in parallel
-    const [summaryRes, topProductsRes, monthlySalesRes, dailySalesRes, productsRes, stocksRes] =
-      await Promise.all([
-        api.get('/api/dashboard/summary'),
-        api.get('/api/dashboard/top-products'),
-        api.get('/api/dashboard/monthly-sales'),
-        api.get('/api/dashboard/daily-sales'),
-        api.get('/api/dashboard/products'),
-        api.get('/api/dashboard/stocks'),
-      ])
+    const [
+      summaryRes,
+      topProductsRes,
+      monthlySalesRes,
+      dailySalesRes,
+      productsRes,
+      stocksRes,
+      previousYearSalesRes,
+      previousMonthSalesRes,
+    ] = await Promise.all([
+      api.get('/api/dashboard/summary'),
+      api.get('/api/dashboard/top-products'),
+      api.get('/api/dashboard/monthly-sales'),
+      api.get('/api/dashboard/daily-sales'),
+      api.get('/api/dashboard/products'),
+      api.get('/api/dashboard/stocks'),
+      api.get('/api/dashboard/previous-year-sales').catch(() => null), // Optional API
+      api.get('/api/dashboard/previous-month-sales').catch(() => null), // Optional API
+    ])
 
     // Update dashboard data with API responses
     Object.assign(dashboardData.value, summaryRes.data)
@@ -870,130 +890,18 @@ const fetchDashboardData = async () => {
     dashboardData.value.products = productsRes.data
     dashboardData.value.stocks = stocksRes.data
 
+    // Add previous period data if available
+    if (previousYearSalesRes) {
+      dashboardData.value.previousYearSales = previousYearSalesRes.data
+    }
+    if (previousMonthSalesRes) {
+      dashboardData.value.previousMonthSales = previousMonthSalesRes.data
+    }
+
     console.log('Dashboard data loaded from API:', dashboardData.value)
   } catch (error) {
     console.error('Gagal mengambil data dashboard dari API:', error)
-    console.log('Menggunakan data dummy sebagai fallback')
-
-    // Enhanced fallback to mock data if API fails
-    dashboardData.value = {
-      totalSales: 7500000,
-      salesGrowth: 3.2,
-      totalOrders: 234,
-      ordersGrowth: -0.8,
-      totalMembers: 125,
-      membersGrowth: 6.5,
-      totalMemberPoints: 1580,
-      pointsGrowth: 12.3,
-      topSellingProducts: [
-        {
-          id: 1,
-          name: 'Kopi Susu',
-          price: 15000,
-          sold_quantity: 1022,
-          growth: 8.2,
-        },
-        {
-          id: 2,
-          name: 'Red Velvet',
-          price: 25000,
-          sold_quantity: 800,
-          growth: 7,
-        },
-        {
-          id: 3,
-          name: 'Ayam Geprek',
-          price: 18000,
-          sold_quantity: 645,
-          growth: 2.5,
-        },
-      ],
-      products: [
-        { id: 1, name: 'Kopi Susu', price: 15000, type: 'Minuman', status: 'Tersedia' },
-        { id: 2, name: 'Kopi Gula Aren', price: 15000, type: 'Minuman', status: 'Tersedia' },
-        { id: 3, name: 'Kopi Butter', price: 15000, type: 'Minuman', status: 'Tersedia' },
-        { id: 4, name: 'Kentang Goreng', price: 10000, type: 'Makanan', status: 'Habis' },
-        { id: 5, name: 'Es Teh Manis', price: 8000, type: 'Minuman', status: 'Tersedia' },
-        { id: 6, name: 'Nasi Goreng', price: 20000, type: 'Makanan', status: 'Tersedia' },
-        { id: 7, name: 'Mie Ayam', price: 18000, type: 'Makanan', status: 'Tersedia' },
-        { id: 8, name: 'Es Krim Vanilla', price: 12000, type: 'Dessert', status: 'Tersedia' },
-        { id: 9, name: 'Jus Jeruk', price: 10000, type: 'Minuman', status: 'Habis' },
-        { id: 10, name: 'Roti Bakar', price: 15000, type: 'Makanan', status: 'Tersedia' },
-        { id: 11, name: 'Cappuccino', price: 18000, type: 'Minuman', status: 'Tersedia' },
-        { id: 12, name: 'Latte', price: 20000, type: 'Minuman', status: 'Tersedia' },
-        { id: 13, name: 'Americano', price: 16000, type: 'Minuman', status: 'Tersedia' },
-        { id: 14, name: 'Sandwich Club', price: 25000, type: 'Makanan', status: 'Tersedia' },
-        { id: 15, name: 'Pancake', price: 22000, type: 'Dessert', status: 'Habis' },
-        { id: 16, name: 'Waffle', price: 24000, type: 'Dessert', status: 'Tersedia' },
-        { id: 17, name: 'Smoothie Bowl', price: 28000, type: 'Dessert', status: 'Tersedia' },
-        { id: 18, name: 'Croissant', price: 14000, type: 'Makanan', status: 'Tersedia' },
-        { id: 19, name: 'Matcha Latte', price: 22000, type: 'Minuman', status: 'Tersedia' },
-        { id: 20, name: 'Hot Chocolate', price: 16000, type: 'Minuman', status: 'Tersedia' },
-      ],
-      stocks: [
-        { id: 1, name: 'Gula', status: 'Restok' },
-        { id: 2, name: 'Beras', status: 'Restok' },
-        { id: 3, name: 'Bubuk Matcha', status: 'Restok' },
-        { id: 4, name: 'Susu UHT', status: 'Restok' },
-        { id: 5, name: 'Kentang', status: 'Restok' },
-        { id: 6, name: 'Tepung Terigu', status: 'Aman' },
-        { id: 7, name: 'Minyak Goreng', status: 'Aman' },
-        { id: 8, name: 'Telur Ayam', status: 'Restok' },
-        { id: 9, name: 'Daging Ayam', status: 'Aman' },
-        { id: 10, name: 'Sayuran Segar', status: 'Restok' },
-        { id: 11, name: 'Kopi Bubuk', status: 'Aman' },
-        { id: 12, name: 'Garam', status: 'Aman' },
-        { id: 13, name: 'Merica', status: 'Restok' },
-        { id: 14, name: 'Bawang Merah', status: 'Aman' },
-        { id: 15, name: 'Bawang Putih', status: 'Restok' },
-      ],
-      monthlySales: [
-        { month: 'Jan', sales: 200000 },
-        { month: 'Feb', sales: 350000 },
-        { month: 'Mar', sales: 280000 },
-        { month: 'Apr', sales: 400000 },
-        { month: 'May', sales: 380000 },
-        { month: 'Jun', sales: 420000 },
-        { month: 'Jul', sales: 500000 },
-        { month: 'Aug', sales: 480000 },
-        { month: 'Sep', sales: 520000 },
-        { month: 'Oct', sales: 490000 },
-        { month: 'Nov', sales: 350000 },
-        { month: 'Dec', sales: 600000 },
-      ],
-      dailySales: [
-        { day: '1', sales: 15000 },
-        { day: '2', sales: 22000 },
-        { day: '3', sales: 18000 },
-        { day: '4', sales: 25000 },
-        { day: '5', sales: 30000 },
-        { day: '6', sales: 35000 },
-        { day: '7', sales: 28000 },
-        { day: '8', sales: 32000 },
-        { day: '9', sales: 27000 },
-        { day: '10', sales: 40000 },
-        { day: '11', sales: 38000 },
-        { day: '12', sales: 42000 },
-        { day: '13', sales: 45000 },
-        { day: '14', sales: 50000 },
-        { day: '15', sales: 48000 },
-        { day: '16', sales: 35000 },
-        { day: '17', sales: 30000 },
-        { day: '18', sales: 33000 },
-        { day: '19', sales: 37000 },
-        { day: '20', sales: 41000 },
-        { day: '21', sales: 44000 },
-        { day: '22', sales: 39000 },
-        { day: '23', sales: 36000 },
-        { day: '24', sales: 43000 },
-        { day: '25', sales: 47000 },
-        { day: '26', sales: 52000 },
-        { day: '27', sales: 49000 },
-        { day: '28', sales: 45000 },
-        { day: '29', sales: 51000 },
-        { day: '30', sales: 55000 },
-      ],
-    }
+    // API error - data akan kosong sampai API tersedia
   } finally {
     loading.value = false
     // Create charts after data is loaded
