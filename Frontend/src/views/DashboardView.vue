@@ -890,6 +890,11 @@ const fetchDashboardData = async () => {
     dashboardData.value.products = productsRes.data
     dashboardData.value.stocks = stocksRes.data
 
+    // Debug daily sales data
+    console.log('Daily Sales Data received:', dailySalesRes.data)
+    console.log('Today should be day:', new Date().getDate())
+    console.log('Last few days in chart:', dailySalesRes.data.slice(-5))
+
     // Add previous period data if available
     if (previousYearSalesRes) {
       dashboardData.value.previousYearSales = previousYearSalesRes.data

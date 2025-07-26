@@ -129,15 +129,59 @@ export const getMonthlySales = async (req, res) => {
 // Get daily sales data for chart
 export const getDailySales = async (req, res) => {
   try {
-    // Get current date and 30 days ago
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 29); // Last 30 days
+    // Get current date in Indonesia timezone (UTC+7)
+    const now = new Date();
+    const indonesiaOffset = 7 * 60; // UTC+7 in minutes
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const indonesiaTime = new Date(utcTime + indonesiaOffset * 60000);
+
+    // Set dates in Indonesia timezone
+    const today = new Date(
+      indonesiaTime.getFullYear(),
+      indonesiaTime.getMonth(),
+      indonesiaTime.getDate()
+    );
+    const endDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59
+    );
+    const startDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - 29,
+      0,
+      0,
+      0
+    );
+
+    console.log("Date range for daily sales (Indonesia timezone):", {
+      indonesiaTime: indonesiaTime.toISOString(),
+      today: today.toISOString(),
+      todayDate: today.getDate(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
 
     // Query untuk mendapatkan data penjualan harian dari Transaction
+    // Convert database timestamps to Indonesia timezone for date grouping
     const dailySales = await Transaction.findAll({
       attributes: [
-        [Sequelize.fn("DATE", Sequelize.col("createdAt")), "date"],
+        [
+          Sequelize.fn(
+            "DATE",
+            Sequelize.fn(
+              "CONVERT_TZ",
+              Sequelize.col("createdAt"),
+              "+00:00",
+              "+07:00"
+            )
+          ),
+          "date",
+        ],
         [Sequelize.fn("SUM", Sequelize.col("final_price")), "totalSales"],
       ],
       where: {
@@ -146,10 +190,35 @@ export const getDailySales = async (req, res) => {
           [Op.between]: [startDate, endDate],
         },
       },
-      group: [Sequelize.fn("DATE", Sequelize.col("createdAt"))],
-      order: [[Sequelize.fn("DATE", Sequelize.col("createdAt")), "ASC"]],
+      group: [
+        Sequelize.fn(
+          "DATE",
+          Sequelize.fn(
+            "CONVERT_TZ",
+            Sequelize.col("createdAt"),
+            "+00:00",
+            "+07:00"
+          )
+        ),
+      ],
+      order: [
+        [
+          Sequelize.fn(
+            "DATE",
+            Sequelize.fn(
+              "CONVERT_TZ",
+              Sequelize.col("createdAt"),
+              "+00:00",
+              "+07:00"
+            )
+          ),
+          "ASC",
+        ],
+      ],
       raw: true,
     });
+
+    console.log("Raw daily sales data:", dailySales);
 
     // Create a map of existing sales data
     const salesMap = {};
@@ -160,15 +229,29 @@ export const getDailySales = async (req, res) => {
     // Generate complete 30-day data with zeros for missing days
     const chartData = [];
     for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+      // Use Indonesia timezone for consistent date calculation
+      const date = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - i
+      );
       const dateStr = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const dayNumber = date.getDate();
 
       chartData.push({
-        day: date.getDate().toString(),
+        day: dayNumber.toString(),
+        date: dateStr, // Include full date for debugging
         sales: salesMap[dateStr] || 0,
       });
     }
+
+    console.log("Final chart data (last 3 days):", chartData.slice(-3));
+    console.log(
+      "Today should be day:",
+      today.getDate(),
+      "Current data shows last day:",
+      chartData[chartData.length - 1]?.day
+    );
 
     res.json(chartData);
   } catch (error) {
