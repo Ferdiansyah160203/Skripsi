@@ -237,7 +237,7 @@ export const getDashboardProducts = async (req, res) => {
   try {
     // Get products data
     const products = await Product.findAll({
-      attributes: ["id", "name", "price", "createdAt"],
+      attributes: ["id", "name", "price", "category", "createdAt"],
 
       order: [["createdAt", "DESC"]],
     });
@@ -274,7 +274,7 @@ export const getDashboardProducts = async (req, res) => {
         id: product.id,
         name: product.name,
         price: parseFloat(product.price),
-        type: "Test",
+        category: product.category,
         status: isAvailable ? "Tersedia" : "Habis",
         createdAt: product.createdAt,
         materialsCount: productMaterials.length,
