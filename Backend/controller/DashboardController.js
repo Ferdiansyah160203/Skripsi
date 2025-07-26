@@ -48,41 +48,37 @@ export const getDashboardSummary = async (req, res) => {
 // Get top selling products
 export const getTopSellingProducts = async (req, res) => {
   try {
-    // Query untuk mendapatkan produk terlaris dari TransactionProduct
-    const topProducts = await TransactionProduct.findAll({
+    // Alternative approach: Query TransactionProduct with Product data separately
+    const topProductsRaw = await TransactionProduct.findAll({
       attributes: [
-        [Sequelize.col("Product.id"), "id"],
-        [Sequelize.col("Product.name"), "name"],
-        [Sequelize.col("Product.price"), "price"],
-        [Sequelize.fn("SUM", Sequelize.col("quantity_sold")), "sold_quantity"],
+        "product_id",
+        [Sequelize.fn("SUM", Sequelize.col("quantity_sold")), "total_sold"],
       ],
-      include: [
-        {
-          model: Product,
-          attributes: [],
-          required: true,
-        },
-      ],
-      group: ["Product.id", "Product.name", "Product.price"],
+      group: ["product_id"],
       order: [[Sequelize.fn("SUM", Sequelize.col("quantity_sold")), "DESC"]],
       limit: 5,
       raw: true,
     });
 
-    const formattedProducts = topProducts.map((item) => ({
-      id: item.id,
-      name: item.name || "Unknown Product",
-      price: parseFloat(item.price) || 0,
-      sold_quantity: parseInt(item.sold_quantity) || 0,
-      growth: 0, // TODO: Calculate from historical data
-    }));
+    // Get product details for each top selling product
+    const topProducts = [];
+    for (const item of topProductsRaw) {
+      const product = await Product.findByPk(item.product_id, {
+        attributes: ["id", "name", "price"],
+      });
 
-    // Jika tidak ada data transaksi, return empty array
-    if (formattedProducts.length === 0) {
-      return res.json([]);
+      if (product) {
+        topProducts.push({
+          id: product.id,
+          name: product.name || "Unknown Product",
+          price: parseFloat(product.price) || 0,
+          sold_quantity: parseInt(item.total_sold) || 0,
+          growth: 0, // TODO: Calculate from historical data
+        });
+      }
     }
 
-    res.json(formattedProducts);
+    res.json(topProducts);
   } catch (error) {
     console.error("Error fetching top selling products:", error);
     res.status(500).json({
