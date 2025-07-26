@@ -9,10 +9,13 @@ export const createInventory = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // Allow negative stock values
+    const stockValue = parseInt(stock) || 0;
+
     const newInventory = await InventoryModel.create({
       name,
       unit,
-      stock,
+      stock: stockValue,
     });
 
     res
@@ -63,7 +66,11 @@ export const updateInventory = async (req, res) => {
 
     inventory.name = name || inventory.name;
     inventory.unit = unit || inventory.unit;
-    inventory.stock = stock !== undefined ? stock : inventory.stock;
+
+    // Allow negative stock values - no validation for minimum stock
+    if (stock !== undefined) {
+      inventory.stock = parseInt(stock) || 0;
+    }
 
     await inventory.save();
 
@@ -90,5 +97,73 @@ export const deleteInventory = async (req, res) => {
     res.status(200).json({ message: "Inventory deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting inventory", error });
+  }
+};
+
+// Reduce inventory stock (for orders) - allows negative stock
+export const reduceInventoryStock = async (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ message: "Valid quantity is required" });
+    }
+
+    const inventory = await InventoryModel.findByPk(id);
+    if (!inventory) {
+      return res.status(404).json({ message: "Inventory not found" });
+    }
+
+    // Allow stock to go negative - no stock validation
+    const newStock = inventory.stock - parseInt(quantity);
+    inventory.stock = newStock;
+
+    await inventory.save();
+
+    const status =
+      newStock < 0 ? "Stock is now negative" : "Stock reduced successfully";
+
+    res.status(200).json({
+      message: status,
+      inventory,
+      previousStock: inventory.stock + parseInt(quantity),
+      reducedBy: parseInt(quantity),
+      currentStock: newStock,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error reducing inventory stock", error });
+  }
+};
+
+// Add inventory stock (for restocking)
+export const addInventoryStock = async (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ message: "Valid quantity is required" });
+    }
+
+    const inventory = await InventoryModel.findByPk(id);
+    if (!inventory) {
+      return res.status(404).json({ message: "Inventory not found" });
+    }
+
+    const newStock = inventory.stock + parseInt(quantity);
+    inventory.stock = newStock;
+
+    await inventory.save();
+
+    res.status(200).json({
+      message: "Stock added successfully",
+      inventory,
+      previousStock: inventory.stock - parseInt(quantity),
+      addedBy: parseInt(quantity),
+      currentStock: newStock,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error adding inventory stock", error });
   }
 };

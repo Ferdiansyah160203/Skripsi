@@ -76,12 +76,8 @@ export const createTransaction = async (req, res) => {
 
         const totalUsed = material.quantity_used * item.quantity_sold;
 
-        if (inventory.stock < totalUsed) {
-          return res.status(400).json({
-            message: `Stok tidak cukup untuk bahan ${inventory.name}`,
-          });
-        }
-
+        // Allow negative stock - remove stock validation
+        // Order can proceed even if stock is insufficient
         inventory.stock -= totalUsed;
         await inventory.save();
       }
