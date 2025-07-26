@@ -238,7 +238,7 @@ export const getDashboardProducts = async (req, res) => {
     // Get products data
     const products = await Product.findAll({
       attributes: ["id", "name", "price", "createdAt"],
-      limit: 5,
+
       order: [["createdAt", "DESC"]],
     });
 
@@ -297,7 +297,7 @@ export const getDashboardStocks = async (req, res) => {
     // Ambil data langsung dari Inventories (daftar bahan mentah/raw materials)
     const stocks = await InventoryModel.findAll({
       attributes: ["id", "name", "stock", "createdAt"],
-      limit: 10,
+
       order: [["createdAt", "DESC"]],
     });
 

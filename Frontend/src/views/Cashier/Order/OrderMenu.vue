@@ -56,20 +56,62 @@
               </div>
               <div class="mt-3 flex items-center justify-between">
                 <p class="text-md font-bold text-[#DB3A40]">Rp {{ formatNumber(product.price) }}</p>
-                <span
-                  v-if="getPromoForProduct(product)"
-                  class="text-xs font-semibold text-green-600 bg-green-50 px-1 py-0.5 rounded-full flex items-center gap-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <div class="flex items-center gap-1">
+                  <!-- Indikator status stock -->
+                  <span
+                    v-if="getStockStatus(product) === 'negative'"
+                    class="text-xs font-semibold text-red-600 bg-red-50 px-1 py-0.5 rounded-full flex items-center gap-1"
+                    title="Stock bahan minus"
                   >
-                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                  </svg>
-                  {{ getPromoForProduct(product).point_cost }} Pts
-                </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    Stock Minus
+                  </span>
+                  <span
+                    v-else-if="getStockStatus(product) === 'low'"
+                    class="text-xs font-semibold text-orange-600 bg-orange-50 px-1 py-0.5 rounded-full flex items-center gap-1"
+                    title="Stock bahan terbatas"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    Stock Terbatas
+                  </span>
+                  <!-- Promo badge -->
+                  <span
+                    v-if="getPromoForProduct(product)"
+                    class="text-xs font-semibold text-green-600 bg-green-50 px-1 py-0.5 rounded-full flex items-center gap-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                    </svg>
+                    {{ getPromoForProduct(product).point_cost }} Pts
+                  </span>
+                </div>
               </div>
               <div
                 v-if="selectedProduct?.id === product.id"
@@ -466,6 +508,7 @@ const getImageUrl = (path) =>
 // State
 const products = ref([])
 const promos = ref([])
+const inventories = ref([]) // Tambah state untuk inventories
 const selectedProduct = ref(null) // selectedProduct akan digunakan untuk menampilkan modal
 const orderQuantity = ref(1) // Kuantitas di modal
 const cart = ref([])
@@ -717,12 +760,14 @@ async function loadTransaction(id) {
 // Lifecycle hook: Ambil data produk dan promo saat komponen di-mount
 onMounted(async () => {
   try {
-    const [productsRes, promoRes] = await Promise.all([
+    const [productsRes, promoRes, inventoryRes] = await Promise.all([
       api.get('/api/products/available'),
       api.get('/api/promos'),
+      api.get('/api/inventories'), // Tambah fetch inventory
     ])
     products.value = productsRes.data
     promos.value = promoRes.data
+    inventories.value = inventoryRes.data // Set inventory data
   } catch (err) {
     console.error('Gagal memuat data:', err)
     Swal.fire('Error', 'Gagal memuat data produk atau promo.', 'error')
@@ -738,6 +783,29 @@ onMounted(async () => {
   }
 })
 
+// Fungsi untuk mendapatkan status stock produk
+function getStockStatus(product) {
+  if (!product.ProductMaterials || !inventories.value.length) return 'normal'
+
+  let hasLowStock = false
+  let hasNegativeStock = false
+
+  product.ProductMaterials.forEach((material) => {
+    const inventory = inventories.value.find((inv) => inv.id === material.inventories_id)
+    if (inventory) {
+      if (inventory.stock < 0) {
+        hasNegativeStock = true
+      } else if (inventory.stock < material.quantity_used) {
+        hasLowStock = true
+      }
+    }
+  })
+
+  if (hasNegativeStock) return 'negative'
+  if (hasLowStock) return 'low'
+  return 'normal'
+}
+
 // Fungsi untuk mendapatkan data promo terkait produk
 function getPromoForProduct(product) {
   return promos.value.find((promo) => promo.product_id === product.id)
@@ -750,6 +818,49 @@ function addToCart() {
     return
   }
 
+  // Cek status stock dan tampilkan peringatan jika diperlukan
+  const stockStatus = getStockStatus(selectedProduct.value)
+
+  if (stockStatus === 'negative') {
+    Swal.fire({
+      title: 'Stock Bahan Minus!',
+      text: `Produk "${selectedProduct.value.name}" memiliki bahan dengan stock minus. Order akan tetap diproses dan stock akan semakin minus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Tetap Pesan',
+      cancelButtonText: 'Batal',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        processAddToCart()
+      }
+    })
+    return
+  } else if (stockStatus === 'low') {
+    Swal.fire({
+      title: 'Stock Bahan Terbatas!',
+      text: `Produk "${selectedProduct.value.name}" memiliki bahan dengan stock terbatas. Setelah order ini, stock mungkin menjadi minus.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Tetap Pesan',
+      cancelButtonText: 'Batal',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        processAddToCart()
+      }
+    })
+    return
+  }
+
+  // Jika stock normal, langsung proses
+  processAddToCart()
+}
+
+// Fungsi untuk memproses penambahan ke cart (dipisah agar bisa dipanggil dari SweetAlert)
+function processAddToCart() {
   const existing = cart.value.find((i) => i.product_id === selectedProduct.value.id)
   const promo = getPromoForProduct(selectedProduct.value)
 

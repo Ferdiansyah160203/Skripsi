@@ -175,7 +175,7 @@ describe("Transaction Controller", () => {
       });
     });
 
-    it("should fail if insufficient stock", async () => {
+    it("should allow negative stock (stock can go minus)", async () => {
       req.body = {
         payment_method: "cash",
         products: [
@@ -189,15 +189,17 @@ describe("Transaction Controller", () => {
       InventoryModel.findByPk.mockResolvedValue({
         id: 1,
         name: "Test Inventory",
-        stock: 5, // Insufficient stock
+        stock: 5, // Stock akan menjadi minus setelah transaksi
         save: jest.fn(),
       });
 
       await createTransaction(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      // Transaksi harus berhasil meskipun stock tidak cukup
+      expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
-        message: "Stok tidak cukup untuk bahan Test Inventory",
+        message: "Transaction created successfully",
+        transaction: expect.any(Object),
       });
     });
 

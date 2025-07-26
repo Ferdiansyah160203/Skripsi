@@ -703,7 +703,13 @@ const formatNumber = (val) => {
 // Helper untuk mendapatkan teks status berdasarkan stok
 const getStatusText = (stock) => {
   const stockValue = parseFloat(stock) || 0
-  return stockValue > 0 ? 'Tersedia' : 'Habis'
+  if (stockValue > 0) {
+    return 'Tersedia'
+  } else if (stockValue === 0) {
+    return 'Habis'
+  } else {
+    return 'Minus'
+  }
 }
 
 // Helper untuk mendapatkan class CSS status
@@ -711,6 +717,8 @@ const getStatusClass = (stock) => {
   const stockValue = parseFloat(stock) || 0
   if (stockValue > 0) {
     return 'bg-green-100 text-green-800'
+  } else if (stockValue === 0) {
+    return 'bg-yellow-100 text-yellow-800'
   } else {
     return 'bg-red-100 text-red-800'
   }

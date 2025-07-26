@@ -315,11 +315,13 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr
-                  v-for="(product, index) in dashboardData.products.slice(0, 5)"
+                  v-for="(product, index) in paginatedProducts"
                   :key="product.id"
                   class="hover:bg-gray-50"
                 >
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ index + 1 }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ (currentPage - 1) * itemsPerPage + index + 1 }}
+                  </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {{ product.name }}
                   </td>
@@ -347,17 +349,54 @@
           </div>
           <div class="px-6 py-3 border-t">
             <div class="flex items-center justify-between">
-              <button class="text-sm text-gray-500 hover:text-gray-700">Previous</button>
-              <div class="flex gap-1">
-                <button class="px-3 py-1 text-sm bg-red-500 text-white rounded">1</button>
-                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">2</button>
-                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">3</button>
-                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">4</button>
-                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">5</button>
-                <span class="px-3 py-1 text-sm text-gray-500">...</span>
-                <button class="px-3 py-1 text-sm text-gray-500 hover:text-gray-700">11</button>
+              <div class="text-sm text-gray-700">
+                Menampilkan {{ (currentPage - 1) * itemsPerPage + 1 }} -
+                {{ Math.min(currentPage * itemsPerPage, dashboardData.products.length) }}
+                dari {{ dashboardData.products.length }} produk
               </div>
-              <button class="text-sm text-gray-500 hover:text-gray-700">Next</button>
+              <div class="flex items-center gap-4">
+                <button
+                  @click="previousPage"
+                  :disabled="currentPage === 1"
+                  :class="[
+                    'text-sm transition-colors',
+                    currentPage === 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-700 cursor-pointer',
+                  ]"
+                >
+                  Previous
+                </button>
+                <div class="flex gap-1">
+                  <template v-for="page in getPageNumbers()" :key="page">
+                    <button
+                      v-if="page !== '...'"
+                      @click="goToPage(page)"
+                      :class="[
+                        'px-3 py-1 text-sm rounded transition-colors',
+                        currentPage === page
+                          ? 'bg-red-500 text-white'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                      ]"
+                    >
+                      {{ page }}
+                    </button>
+                    <span v-else class="px-3 py-1 text-sm text-gray-500"> ... </span>
+                  </template>
+                </div>
+                <button
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages"
+                  :class="[
+                    'text-sm transition-colors',
+                    currentPage === totalPages
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-700 cursor-pointer',
+                  ]"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -390,17 +429,24 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <tr
-                  v-for="(stock, index) in dashboardData.stocks.slice(0, 5)"
+                  v-for="(stock, index) in paginatedStocks"
                   :key="stock.id"
                   class="hover:bg-gray-50"
                 >
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ index + 1 }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ (currentStockPage - 1) * stockItemsPerPage + index + 1 }}
+                  </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {{ stock.name }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span
-                      class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800"
+                      :class="[
+                        'inline-flex px-2 py-1 text-xs font-semibold rounded-full',
+                        stock.status === 'Aman'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800',
+                      ]"
                     >
                       {{ stock.status }}
                     </span>
@@ -409,6 +455,58 @@
               </tbody>
             </table>
           </div>
+          <div class="px-6 py-3 border-t">
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-700">
+                Menampilkan {{ (currentStockPage - 1) * stockItemsPerPage + 1 }} -
+                {{ Math.min(currentStockPage * stockItemsPerPage, dashboardData.stocks.length) }}
+                dari {{ dashboardData.stocks.length }} stok
+              </div>
+              <div class="flex items-center gap-4">
+                <button
+                  @click="previousStockPage"
+                  :disabled="currentStockPage === 1"
+                  :class="[
+                    'text-sm transition-colors',
+                    currentStockPage === 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-700 cursor-pointer',
+                  ]"
+                >
+                  Previous
+                </button>
+                <div class="flex gap-1">
+                  <template v-for="page in getStockPageNumbers()" :key="page">
+                    <button
+                      v-if="page !== '...'"
+                      @click="goToStockPage(page)"
+                      :class="[
+                        'px-3 py-1 text-sm rounded transition-colors',
+                        currentStockPage === page
+                          ? 'bg-red-500 text-white'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                      ]"
+                    >
+                      {{ page }}
+                    </button>
+                    <span v-else class="px-3 py-1 text-sm text-gray-500"> ... </span>
+                  </template>
+                </div>
+                <button
+                  @click="nextStockPage"
+                  :disabled="currentStockPage === totalStockPages"
+                  :class="[
+                    'text-sm transition-colors',
+                    currentStockPage === totalStockPages
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-500 hover:text-gray-700 cursor-pointer',
+                  ]"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -416,7 +514,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { ShoppingCart, Repeat, Users, Award } from 'lucide-vue-next'
 import Chart from 'chart.js/auto'
@@ -430,6 +528,14 @@ let productChartInstance = null
 
 // Chart view mode - 'monthly' or 'daily'
 const chartViewMode = ref('monthly')
+
+// Pagination state for products table
+const currentPage = ref(1)
+const itemsPerPage = ref(5)
+
+// Pagination state for stocks table
+const currentStockPage = ref(1)
+const stockItemsPerPage = ref(5)
 
 // Dashboard data
 const dashboardData = ref({
@@ -475,6 +581,146 @@ const formatNumber = (val) => {
 const getProductColor = (index) => {
   const colors = ['#EF4444', '#F97316', '#EAB308']
   return colors[index % colors.length]
+}
+
+// Pagination functions
+const totalPages = computed(() => {
+  return Math.ceil(dashboardData.value.products.length / itemsPerPage.value)
+})
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return dashboardData.value.products.slice(start, end)
+})
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const getPageNumbers = () => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+
+  if (total <= 7) {
+    // Show all pages if total is 7 or less
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Always show first page
+    pages.push(1)
+
+    if (current <= 4) {
+      // Show 1, 2, 3, 4, 5, ..., last
+      for (let i = 2; i <= 5; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    } else if (current >= total - 3) {
+      // Show 1, ..., last-4, last-3, last-2, last-1, last
+      pages.push('...')
+      for (let i = total - 4; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Show 1, ..., current-1, current, current+1, ..., last
+      pages.push('...')
+      for (let i = current - 1; i <= current + 1; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    }
+  }
+
+  return pages
+}
+
+// Stock Pagination functions
+const totalStockPages = computed(() => {
+  return Math.ceil(dashboardData.value.stocks.length / stockItemsPerPage.value)
+})
+
+const paginatedStocks = computed(() => {
+  const start = (currentStockPage.value - 1) * stockItemsPerPage.value
+  const end = start + stockItemsPerPage.value
+  return dashboardData.value.stocks.slice(start, end)
+})
+
+const goToStockPage = (page) => {
+  if (page >= 1 && page <= totalStockPages.value) {
+    currentStockPage.value = page
+  }
+}
+
+const previousStockPage = () => {
+  if (currentStockPage.value > 1) {
+    currentStockPage.value--
+  }
+}
+
+const nextStockPage = () => {
+  if (currentStockPage.value < totalStockPages.value) {
+    currentStockPage.value++
+  }
+}
+
+const getStockPageNumbers = () => {
+  const pages = []
+  const total = totalStockPages.value
+  const current = currentStockPage.value
+
+  if (total <= 7) {
+    // Show all pages if total is 7 or less
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Always show first page
+    pages.push(1)
+
+    if (current <= 4) {
+      // Show 1, 2, 3, 4, 5, ..., last
+      for (let i = 2; i <= 5; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    } else if (current >= total - 3) {
+      // Show 1, ..., last-4, last-3, last-2, last-1, last
+      pages.push('...')
+      for (let i = total - 4; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Show 1, ..., current-1, current, current+1, ..., last
+      pages.push('...')
+      for (let i = current - 1; i <= current + 1; i++) {
+        pages.push(i)
+      }
+      pages.push('...')
+      pages.push(total)
+    }
+  }
+
+  return pages
 }
 
 // Create sales chart
@@ -600,6 +846,10 @@ const createProductChart = () => {
 // Fungsi untuk mengambil data dashboard dari API
 const fetchDashboardData = async () => {
   loading.value = true
+  // Reset pagination when fetching new data
+  currentPage.value = 1
+  currentStockPage.value = 1
+
   try {
     // Fetch all dashboard data in parallel
     const [summaryRes, topProductsRes, monthlySalesRes, dailySalesRes, productsRes, stocksRes] =
@@ -664,6 +914,21 @@ const fetchDashboardData = async () => {
         { id: 3, name: 'Kopi Butter', price: 15000, type: 'Minuman', status: 'Tersedia' },
         { id: 4, name: 'Kentang Goreng', price: 10000, type: 'Makanan', status: 'Habis' },
         { id: 5, name: 'Es Teh Manis', price: 8000, type: 'Minuman', status: 'Tersedia' },
+        { id: 6, name: 'Nasi Goreng', price: 20000, type: 'Makanan', status: 'Tersedia' },
+        { id: 7, name: 'Mie Ayam', price: 18000, type: 'Makanan', status: 'Tersedia' },
+        { id: 8, name: 'Es Krim Vanilla', price: 12000, type: 'Dessert', status: 'Tersedia' },
+        { id: 9, name: 'Jus Jeruk', price: 10000, type: 'Minuman', status: 'Habis' },
+        { id: 10, name: 'Roti Bakar', price: 15000, type: 'Makanan', status: 'Tersedia' },
+        { id: 11, name: 'Cappuccino', price: 18000, type: 'Minuman', status: 'Tersedia' },
+        { id: 12, name: 'Latte', price: 20000, type: 'Minuman', status: 'Tersedia' },
+        { id: 13, name: 'Americano', price: 16000, type: 'Minuman', status: 'Tersedia' },
+        { id: 14, name: 'Sandwich Club', price: 25000, type: 'Makanan', status: 'Tersedia' },
+        { id: 15, name: 'Pancake', price: 22000, type: 'Dessert', status: 'Habis' },
+        { id: 16, name: 'Waffle', price: 24000, type: 'Dessert', status: 'Tersedia' },
+        { id: 17, name: 'Smoothie Bowl', price: 28000, type: 'Dessert', status: 'Tersedia' },
+        { id: 18, name: 'Croissant', price: 14000, type: 'Makanan', status: 'Tersedia' },
+        { id: 19, name: 'Matcha Latte', price: 22000, type: 'Minuman', status: 'Tersedia' },
+        { id: 20, name: 'Hot Chocolate', price: 16000, type: 'Minuman', status: 'Tersedia' },
       ],
       stocks: [
         { id: 1, name: 'Gula', status: 'Restok' },
@@ -671,6 +936,16 @@ const fetchDashboardData = async () => {
         { id: 3, name: 'Bubuk Matcha', status: 'Restok' },
         { id: 4, name: 'Susu UHT', status: 'Restok' },
         { id: 5, name: 'Kentang', status: 'Restok' },
+        { id: 6, name: 'Tepung Terigu', status: 'Aman' },
+        { id: 7, name: 'Minyak Goreng', status: 'Aman' },
+        { id: 8, name: 'Telur Ayam', status: 'Restok' },
+        { id: 9, name: 'Daging Ayam', status: 'Aman' },
+        { id: 10, name: 'Sayuran Segar', status: 'Restok' },
+        { id: 11, name: 'Kopi Bubuk', status: 'Aman' },
+        { id: 12, name: 'Garam', status: 'Aman' },
+        { id: 13, name: 'Merica', status: 'Restok' },
+        { id: 14, name: 'Bawang Merah', status: 'Aman' },
+        { id: 15, name: 'Bawang Putih', status: 'Restok' },
       ],
       monthlySales: [
         { month: 'Jan', sales: 200000 },

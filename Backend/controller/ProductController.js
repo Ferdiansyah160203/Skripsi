@@ -48,15 +48,9 @@ export const getAvailableProducts = async (req, res) => {
     const result = products.map((product) => {
       const materials = product.ProductMaterials || [];
 
-      let isAvailable = true; // Default to available
-
-      // If product has materials, check if all materials are available
-      if (materials.length > 0) {
-        isAvailable = materials.every((material) => {
-          const inventory = material.inventory;
-          return inventory && inventory.stock >= material.quantity_used;
-        });
-      }
+      // Selalu set available = true agar semua produk bisa dipesan
+      // meskipun stock bahan tidak cukup (akan jadi minus)
+      let isAvailable = true;
 
       return {
         id: product.id,

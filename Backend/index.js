@@ -3,10 +3,14 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import router from "./routes/index.js";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
@@ -16,7 +20,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use("/uploads", express.static("public/uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use(router);
 
 export default app;
