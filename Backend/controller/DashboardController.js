@@ -67,60 +67,26 @@ export const getTopSellingProducts = async (req, res) => {
       raw: true,
     });
 
-    // Format hasil dan tambahkan random growth (bisa dihitung dari data historis jika ada)
     const formattedProducts = topProducts.map((item) => ({
       id: item.id,
       name: item.name || "Unknown Product",
       price: parseFloat(item.price) || 0,
       sold_quantity: parseInt(item.sold_quantity) || 0,
-      growth: Math.floor(Math.random() * 20) - 5, // Random growth untuk sementara
+      growth: Math.floor(Math.random() * 20) - 5,
     }));
 
-    // Jika tidak ada data transaksi, return data sample
+    // Jika tidak ada data transaksi, return empty array
     if (formattedProducts.length === 0) {
-      const sampleProducts = [
-        {
-          id: "1",
-          name: "Kopi Susu",
-          price: 15000,
-          sold_quantity: 0,
-          growth: 0,
-        },
-        {
-          id: "2",
-          name: "Americano",
-          price: 12000,
-          sold_quantity: 0,
-          growth: 0,
-        },
-        {
-          id: "3",
-          name: "Cappuccino",
-          price: 18000,
-          sold_quantity: 0,
-          growth: 0,
-        },
-      ];
-      return res.json(sampleProducts);
+      return res.json([]);
     }
 
     res.json(formattedProducts);
   } catch (error) {
     console.error("Error fetching top selling products:", error);
-
-    // Fallback to sample data if query fails
-    const sampleProducts = [
-      { id: "1", name: "Kopi Susu", price: 15000, sold_quantity: 0, growth: 0 },
-      { id: "2", name: "Americano", price: 12000, sold_quantity: 0, growth: 0 },
-      {
-        id: "3",
-        name: "Cappuccino",
-        price: 18000,
-        sold_quantity: 0,
-        growth: 0,
-      },
-    ];
-    res.json(sampleProducts);
+    res.status(500).json({
+      message: "Error fetching top selling products",
+      error: error.message,
+    });
   }
 };
 
@@ -154,25 +120,6 @@ export const getMonthlySales = async (req, res) => {
       year: item.year,
       sales: parseFloat(item.totalSales) || 0,
     }));
-
-    // Jika tidak ada data transaksi, return data sample untuk tahun ini
-    if (chartData.length === 0) {
-      const currentYear = new Date().getFullYear();
-      chartData = [
-        { month: "Jan", year: currentYear, sales: 0 },
-        { month: "Feb", year: currentYear, sales: 0 },
-        { month: "Mar", year: currentYear, sales: 0 },
-        { month: "Apr", year: currentYear, sales: 0 },
-        { month: "May", year: currentYear, sales: 0 },
-        { month: "Jun", year: currentYear, sales: 0 },
-        { month: "Jul", year: currentYear, sales: 0 },
-        { month: "Aug", year: currentYear, sales: 0 },
-        { month: "Sep", year: currentYear, sales: 0 },
-        { month: "Oct", year: currentYear, sales: 0 },
-        { month: "Nov", year: currentYear, sales: 0 },
-        { month: "Dec", year: currentYear, sales: 0 },
-      ];
-    }
 
     res.json(chartData);
   } catch (error) {
@@ -312,16 +259,10 @@ export const getDashboardStocks = async (req, res) => {
     res.json(formattedStocks);
   } catch (error) {
     console.error("Error fetching dashboard stocks:", error);
-    console.error("Error details:", error.message);
-
-    // Return some sample data if the query fails
-    res.json([
-      { id: 1, name: "Gula", stock: 5, status: "Restok" },
-      { id: 2, name: "Beras", stock: 8, status: "Restok" },
-      { id: 3, name: "Bubuk Matcha", stock: 15, status: "Aman" },
-      { id: 4, name: "Susu UHT", stock: 3, status: "Restok" },
-      { id: 5, name: "Kentang", stock: 12, status: "Aman" },
-    ]);
+    res.status(500).json({
+      message: "Error fetching dashboard stocks",
+      error: error.message,
+    });
   }
 };
 
