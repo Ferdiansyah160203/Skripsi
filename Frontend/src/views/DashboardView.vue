@@ -128,13 +128,13 @@
                   <div class="flex items-center gap-2">
                     <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                     <span class="text-sm text-gray-600">{{
-                      chartViewMode === 'monthly' ? 'Tahun saat ini' : 'Bulan ini'
+                      chartViewMode === 'monthly' ? 'Bulan ini' : 'Hari ini'
                     }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <div class="w-3 h-3 bg-pink-300 rounded-full"></div>
                     <span class="text-sm text-gray-600">{{
-                      chartViewMode === 'monthly' ? 'Tahun lalu' : 'Bulan lalu'
+                      chartViewMode === 'monthly' ? 'Bulan lalu' : 'Hari lalu'
                     }}</span>
                   </div>
                 </div>
@@ -329,7 +329,7 @@
                     Rp. {{ formatCurrency(product.price) }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ product.type }}
+                    {{ product.category }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span

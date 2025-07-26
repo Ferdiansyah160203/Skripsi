@@ -195,13 +195,15 @@ async function handleSubmit() {
   try {
     if (isEdit.value) {
       const { data } = await api.put(`/api/members/${props.editId}`, form.value)
+      Swal.fire('Berhasil!', 'Data member berhasil diperbarui.', 'success')
       emit('saved', data)
+      close()
     } else {
       const { data } = await api.post('/api/members/create', form.value)
+      Swal.fire('Berhasil!', 'Member baru berhasil ditambahkan.', 'success')
       emit('saved', data)
+      close()
     }
-    // form.value = { name: '', phone: '', email: '' }; // Tidak perlu reset di sini, karena close() akan mereset
-    // close(); // close() akan dipanggil setelah emit('saved') di ShowMember.vue
   } catch (error) {
     console.error('Gagal menyimpan data member:', error.response?.data || error.message)
     Swal.fire('Gagal', error.response?.data?.message || 'Gagal menyimpan data member.', 'error')

@@ -320,20 +320,6 @@
                         />
                       </svg>
                     </button>
-                    <button
-                      @click="deleteTransaction(item.id)"
-                      title="Hapus Transaksi"
-                      class="text-red-600 hover:text-red-800 hover:bg-red-100 p-1 rounded transition-colors duration-200"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -676,37 +662,6 @@ function markAsPaid(item) {
 // Aksi tombol "View Detail"
 function viewDetail(id) {
   router.push(`/payment/${id}`)
-}
-
-// Aksi tombol "Delete Transaction"
-async function deleteTransaction(id) {
-  const result = await Swal.fire({
-    title: 'Hapus Transaksi?',
-    html: 'Anda yakin ingin menghapus transaksi ini?<br><strong class="text-red-600">Aksi ini tidak dapat dibatalkan!</strong>',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#6c757d',
-    confirmButtonText: 'Ya, Hapus!',
-    cancelButtonText: 'Batal',
-  })
-
-  if (result.isConfirmed) {
-    try {
-      await api.delete(`/api/transactions/${id}`)
-      transactions.value = transactions.value.filter((item) => item.id !== id)
-      applyFilter()
-      Swal.fire('Berhasil!', 'Transaksi berhasil dihapus.', 'success')
-      if (currentPage.value > totalPages.value && totalPages.value > 0) {
-        currentPage.value = totalPages.value
-      } else if (totalPages.value === 0) {
-        currentPage.value = 1
-      }
-    } catch (err) {
-      console.error('Gagal menghapus transaksi:', err)
-      Swal.fire('Gagal', 'Gagal menghapus transaksi. Silakan coba lagi.', 'error')
-    }
-  }
 }
 </script>
 
