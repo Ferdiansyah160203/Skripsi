@@ -22,15 +22,17 @@ export const getDashboardSummary = async (req, res) => {
     // Total Member Points
     const totalMemberPoints = (await Member.sum("total_points")) || 0;
 
+    // TODO: Calculate real growth from historical data instead of random
+    // For now using 0 until historical data implementation
     const result = {
       totalSales: parseFloat(totalSales),
-      salesGrowth: Math.floor(Math.random() * 10) - 2, // Random growth between -2% and 8%
+      salesGrowth: 0, // TODO: Calculate from previous period
       totalOrders,
-      ordersGrowth: Math.floor(Math.random() * 8) - 3, // Random growth between -3% and 5%
+      ordersGrowth: 0, // TODO: Calculate from previous period
       totalMembers,
-      membersGrowth: Math.floor(Math.random() * 12) - 1, // Random growth between -1% and 11%
+      membersGrowth: 0, // TODO: Calculate from previous period
       totalMemberPoints: parseInt(totalMemberPoints),
-      pointsGrowth: Math.floor(Math.random() * 15) + 1, // Random growth between 1% and 16%
+      pointsGrowth: 0, // TODO: Calculate from previous period
     };
 
     res.json(result);
@@ -72,7 +74,7 @@ export const getTopSellingProducts = async (req, res) => {
       name: item.name || "Unknown Product",
       price: parseFloat(item.price) || 0,
       sold_quantity: parseInt(item.sold_quantity) || 0,
-      growth: Math.floor(Math.random() * 20) - 5,
+      growth: 0, // TODO: Calculate from historical data
     }));
 
     // Jika tidak ada data transaksi, return empty array
@@ -182,51 +184,53 @@ export const getDailySales = async (req, res) => {
 // Get products data for dashboard table
 export const getDashboardProducts = async (req, res) => {
   try {
-    // Get products data
+    // Get products with their materials in one query using include
     const products = await Product.findAll({
       attributes: ["id", "name", "price", "category", "createdAt"],
-
+      include: [
+        {
+          model: ProductMaterial,
+          as: "ProductMaterials", // Use the alias defined in associations
+          attributes: ["inventories_id", "quantity_used"],
+          include: [
+            {
+              model: InventoryModel,
+              as: "inventory", // Use the alias defined in associations
+              attributes: ["stock"],
+            },
+          ],
+          required: false, // Left join to include products without materials
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 
-    const formattedProducts = [];
-
-    for (const product of products) {
-      // Manual query untuk ProductMaterial
-      const productMaterials = await ProductMaterial.findAll({
-        where: { product_id: product.id },
-        attributes: ["inventories_id", "quantity_used"],
-      });
-
+    const formattedProducts = products.map((product) => {
       let isAvailable = true;
 
-      for (const material of productMaterials) {
-        const inventory = await InventoryModel.findByPk(
-          material.inventories_id
-        );
-        const requiredQuantity = material.quantity_used;
-        const availableStock = inventory ? inventory.stock : 0;
+      // Check if product has materials and if all materials are available
+      if (product.ProductMaterials && product.ProductMaterials.length > 0) {
+        for (const material of product.ProductMaterials) {
+          const requiredQuantity = material.quantity_used;
+          const availableStock = material.inventory?.stock || 0;
 
-        if (availableStock < requiredQuantity) {
-          isAvailable = false;
-          break;
+          if (availableStock < requiredQuantity) {
+            isAvailable = false;
+            break;
+          }
         }
       }
 
-      if (productMaterials.length === 0) {
-        isAvailable = true;
-      }
-
-      formattedProducts.push({
+      return {
         id: product.id,
         name: product.name,
         price: parseFloat(product.price),
         category: product.category,
         status: isAvailable ? "Tersedia" : "Habis",
         createdAt: product.createdAt,
-        materialsCount: productMaterials.length,
-      });
-    }
+        materialsCount: product.ProductMaterials?.length || 0,
+      };
+    });
 
     res.json(formattedProducts);
   } catch (error) {

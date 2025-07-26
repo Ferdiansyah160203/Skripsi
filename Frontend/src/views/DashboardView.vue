@@ -901,6 +901,15 @@ const fetchDashboardData = async () => {
     console.log('Dashboard data loaded from API:', dashboardData.value)
   } catch (error) {
     console.error('Gagal mengambil data dashboard dari API:', error)
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      method: error.config?.method,
+      responseData: error.response?.data,
+    })
     // API error - data akan kosong sampai API tersedia
   } finally {
     loading.value = false
