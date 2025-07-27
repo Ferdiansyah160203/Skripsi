@@ -785,6 +785,12 @@ onMounted(async () => {
 
 // Fungsi untuk mendapatkan status stock produk
 function getStockStatus(product) {
+  // Jika product sudah memiliki informasi hasEnoughStock dari backend
+  if (product.hasEnoughStock !== undefined) {
+    return product.hasEnoughStock ? 'normal' : 'low'
+  }
+
+  // Fallback ke logika lama jika tidak ada informasi dari backend
   if (!product.ProductMaterials || !inventories.value.length) return 'normal'
 
   let hasLowStock = false

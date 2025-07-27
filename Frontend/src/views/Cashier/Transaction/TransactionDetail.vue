@@ -79,7 +79,7 @@
             <input
               type="text"
               v-model="searchQuery"
-              placeholder="Cari ID transaksi, member, atau item..."
+              placeholder="Cari ID transaksi..."
               class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

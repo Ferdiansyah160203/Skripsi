@@ -128,18 +128,13 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Status
-                </th>
-                <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr v-if="filteredUsers.length === 0">
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-12 h-12 text-gray-400 mb-4"
@@ -182,14 +177,6 @@
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   >
                     {{ user.role }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    :class="getStatusClass(user.status)"
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  >
-                    {{ user.status }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -335,17 +322,6 @@
                       <option value="admin">Admin</option>
                     </select>
                   </div>
-
-                  <div v-if="isEditing">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select
-                      v-model="form.status"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </div>
                 </div>
               </div>
 
@@ -418,7 +394,6 @@ export default {
         password: '',
         confirmPassword: '',
         role: 'cashier',
-        status: 'active',
       },
     }
   },
@@ -467,7 +442,6 @@ export default {
         name: user.name,
         email: user.email,
         role: user.role,
-        status: user.status,
         password: '',
         confirmPassword: '',
       }
@@ -486,7 +460,6 @@ export default {
         password: '',
         confirmPassword: '',
         role: 'cashier',
-        status: 'active',
       }
     },
 
@@ -561,7 +534,6 @@ export default {
         name: this.form.name,
         email: this.form.email,
         role: this.form.role,
-        status: this.form.status,
       }
 
       if (this.form.password) {
@@ -673,10 +645,6 @@ export default {
 
     getRoleClass(role) {
       return role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-    },
-
-    getStatusClass(status) {
-      return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
     },
   },
 }

@@ -19,7 +19,35 @@ export const getAllProducts = async (req, res) => {
       },
     });
 
-    res.status(200).json(products);
+    const result = products.map((product) => {
+      const materials = product.ProductMaterials || [];
+
+      // Cek ketersediaan berdasarkan stok material
+      let hasEnoughStock = true;
+
+      for (const material of materials) {
+        if (
+          material.inventory &&
+          material.inventory.stock < material.quantity_used
+        ) {
+          hasEnoughStock = false;
+          break;
+        }
+      }
+
+      return {
+        ...product.toJSON(),
+        hasEnoughStock: hasEnoughStock,
+        materials: materials.map((m) => ({
+          name: m.inventory ? m.inventory.name : "Unknown",
+          stock: m.inventory ? m.inventory.stock : 0,
+          needed: m.quantity_used,
+          unit: m.inventory ? m.inventory.unit : "",
+        })),
+      };
+    });
+
+    res.status(200).json(result);
   } catch (error) {
     console.error("Error in getAllProducts:", error);
     res
@@ -48,6 +76,19 @@ export const getAvailableProducts = async (req, res) => {
     const result = products.map((product) => {
       const materials = product.ProductMaterials || [];
 
+      // Cek ketersediaan berdasarkan stok material
+      let hasEnoughStock = true;
+
+      for (const material of materials) {
+        if (
+          material.inventory &&
+          material.inventory.stock < material.quantity_used
+        ) {
+          hasEnoughStock = false;
+          break;
+        }
+      }
+
       // Selalu set available = true agar semua produk bisa dipesan
       // meskipun stock bahan tidak cukup (akan jadi minus)
       let isAvailable = true;
@@ -60,6 +101,13 @@ export const getAvailableProducts = async (req, res) => {
         description: product.description,
         image: product.image,
         available: isAvailable,
+        hasEnoughStock: hasEnoughStock, // Informasi tambahan untuk frontend
+        materials: materials.map((m) => ({
+          name: m.inventory ? m.inventory.name : "Unknown",
+          stock: m.inventory ? m.inventory.stock : 0,
+          needed: m.quantity_used,
+          unit: m.inventory ? m.inventory.unit : "",
+        })),
       };
     });
 

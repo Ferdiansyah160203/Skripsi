@@ -45,8 +45,8 @@
             class="block w-full py-3 px-3 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-red-500 focus:border-red-500 text-sm"
           >
             <option value="">Status Ketersediaan</option>
-            <option value="true">Tersedia</option>
-            <option value="false">Tidak Tersedia</option>
+            <option value="true">Stok Material Cukup</option>
+            <option value="false">Stok Material Kurang</option>
           </select>
         </div>
       </div>
@@ -146,12 +146,23 @@
           <!-- Status Badge -->
           <div class="mb-3">
             <span
-              class="inline-block text-xs px-2 py-1 rounded-full font-medium"
+              class="inline-block text-xs px-2 py-1 rounded-full font-medium cursor-help"
               :class="
-                product.available ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                product.hasEnoughStock !== false
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+              :title="
+                product.hasEnoughStock === false
+                  ? 'Material kurang: ' +
+                    product.materials
+                      ?.filter((m) => m.stock < m.needed)
+                      .map((m) => `${m.name} (${m.stock}/${m.needed} ${m.unit})`)
+                      .join(', ')
+                  : 'Semua material tersedia'
               "
             >
-              {{ product.available ? 'Tersedia' : 'Tidak Tersedia' }}
+              {{ product.hasEnoughStock !== false ? 'Tersedia' : 'Stok Habis' }}
             </span>
           </div>
 
@@ -286,8 +297,8 @@ const filteredProducts = computed(() => {
 
   // Filter berdasarkan ketersediaan
   if (availability.value !== '') {
-    const isAvailable = availability.value === 'true'
-    result = result.filter((p) => p.available === isAvailable)
+    const hasEnoughStock = availability.value === 'true'
+    result = result.filter((p) => (p.hasEnoughStock !== false) === hasEnoughStock)
   }
 
   // Sort berdasarkan harga
