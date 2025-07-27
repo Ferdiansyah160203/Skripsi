@@ -92,7 +92,7 @@ export const createProduct = async (req, res) => {
         .json({ message: "Name, price, and materials are required" });
     }
 
-    const validCategories = ["nasi", "camilan", "roti", "kopi", "non kopi"];
+    const validCategories = ["Nasi", "Camilan", "Roti", "Kopi", "Non Kopi"];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category" });
     }
@@ -145,7 +145,7 @@ export const updateProduct = async (req, res) => {
         .json({ message: "Name, price, and materials are required" });
     }
 
-    const validCategories = ["nasi", "camilan", "roti", "kopi", "non kopi"];
+    const validCategories = ["Nasi", "Camilan", "Roti", "Kopi", "Non Kopi"];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ message: "Invalid category" });
     }

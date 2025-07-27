@@ -97,7 +97,7 @@
             >
               <option disabled value="">-- Pilih Kategori --</option>
               <option v-for="option in categoryOptions" :key="option" :value="option">
-                {{ capitalize(option) }}
+                {{ option }}
               </option>
             </select>
           </div>
@@ -234,8 +234,7 @@ const apiBaseUrl = import.meta.env.VITE_API_URL // Pastikan ini terkonfigurasi
 const { show, productId } = defineProps({ show: Boolean, productId: Number })
 const emit = defineEmits(['close', 'saved'])
 
-const categoryOptions = ['nasi', 'camilan', 'roti', 'kopi', 'non kopi'] // Daftar kategori yang valid
-const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1) // Fungsi untuk kapitalisasi
+const categoryOptions = ['Nasi', 'Camilan', 'Roti', 'Kopi', 'Non Kopi'] // Daftar kategori yang valid sesuai dengan database
 
 const form = ref({
   name: '',
