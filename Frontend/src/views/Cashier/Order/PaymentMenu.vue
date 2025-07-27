@@ -297,9 +297,9 @@
       >
         <div class="text-center border-b pb-2 mb-2">
           <p class="text-xl font-bold mb-1">KEDAI DELIMA</p>
-          <p class="text-xs">Ruko Permata Cikarang Timur</p>
-          <p class="text-xs">Telp: 0812-9982-231</p>
-          <p class="text-xs">NPWP: 06.410.258.5-526.000</p>
+          <p class="text-xs">Jl. Soekarno Hatta No.DR</p>
+          <p class="text-xs">Mojolangu, Kec. Lowokwaru,</p>
+          <p class="text-xs">Kota Malang, Jawa Timur</p>
           <p class="text-xs mt-2">------------------------------------</p>
         </div>
 
