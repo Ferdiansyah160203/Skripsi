@@ -264,7 +264,7 @@ export const getTransactionById = async (req, res) => {
       include: [
         {
           model: Member,
-          attributes: ["id", "name", "phone", "email"],
+          attributes: ["id", "name", "phone", "email", "total_points"],
           required: false, // LEFT JOIN untuk transaksi tanpa member
         },
       ],

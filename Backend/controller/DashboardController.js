@@ -6,33 +6,117 @@ import Transaction from "../models/TransactionModel.js";
 import TransactionProduct from "../models/TransactionProductModel.js";
 import InventoryModel from "../models/InventoriesModel.js";
 import ProductMaterial from "../models/ProductMaterialModel.js";
+import Purchase from "../models/PurchaseModel.js";
 
 // Get dashboard summary data (cards)
 export const getDashboardSummary = async (req, res) => {
   try {
-    // Total Sales (total revenue from transactions) - using final_price which includes discounts
+    // Get current date info
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Previous month calculation
+    let prevMonth = currentMonth - 1;
+    let prevYear = currentYear;
+    if (prevMonth < 0) {
+      prevMonth = 11;
+      prevYear = currentYear - 1;
+    }
+
+    // Current month date range
+    const currentMonthStart = new Date(currentYear, currentMonth, 1);
+    const currentMonthEnd = new Date(currentYear, currentMonth + 1, 0);
+
+    // Previous month date range
+    const prevMonthStart = new Date(prevYear, prevMonth, 1);
+    const prevMonthEnd = new Date(prevYear, prevMonth + 1, 0);
+
+    // Current Month Stats
+    const currentSales =
+      (await Transaction.sum("final_price", {
+        where: {
+          createdAt: {
+            [Op.between]: [currentMonthStart, currentMonthEnd],
+          },
+        },
+      })) || 0;
+
+    const currentPurchase =
+      (await Purchase.sum("total_amount", {
+        where: {
+          createdAt: {
+            [Op.between]: [currentMonthStart, currentMonthEnd],
+          },
+        },
+      })) || 0;
+
+    const currentOrders = await Transaction.count({
+      where: {
+        createdAt: {
+          [Op.between]: [currentMonthStart, currentMonthEnd],
+        },
+      },
+    });
+
+    // Previous Month Stats
+    const prevSales =
+      (await Transaction.sum("final_price", {
+        where: {
+          createdAt: {
+            [Op.between]: [prevMonthStart, prevMonthEnd],
+          },
+        },
+      })) || 0;
+
+    const prevPurchase =
+      (await Purchase.sum("total_amount", {
+        where: {
+          createdAt: {
+            [Op.between]: [prevMonthStart, prevMonthEnd],
+          },
+        },
+      })) || 0;
+
+    const prevOrders = await Transaction.count({
+      where: {
+        createdAt: {
+          [Op.between]: [prevMonthStart, prevMonthEnd],
+        },
+      },
+    });
+
+    // Total All Time Stats
     const totalSales = (await Transaction.sum("final_price")) || 0;
-
-    // Total Orders (total transactions)
+    const totalPurchase = (await Purchase.sum("total_amount")) || 0;
+    const revenue = parseFloat(totalSales) - parseFloat(totalPurchase);
     const totalOrders = await Transaction.count();
-
-    // Total Members
     const totalMembers = await Member.count();
-
-    // Total Member Points
     const totalMemberPoints = (await Member.sum("total_points")) || 0;
 
-    // TODO: Calculate real growth from historical data instead of random
-    // For now using 0 until historical data implementation
+    // Calculate Growth Percentages
+    const calculateGrowth = (current, previous) => {
+      if (previous == 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 100);
+    };
+
+    const currentRevenue =
+      parseFloat(currentSales) - parseFloat(currentPurchase);
+    const prevRevenue = parseFloat(prevSales) - parseFloat(prevPurchase);
+
     const result = {
       totalSales: parseFloat(totalSales),
-      salesGrowth: 0, // TODO: Calculate from previous period
+      totalPurchase: parseFloat(totalPurchase),
+      revenue: parseFloat(revenue),
+      salesGrowth: calculateGrowth(currentSales, prevSales),
+      purchaseGrowth: calculateGrowth(currentPurchase, prevPurchase),
+      revenueGrowth: calculateGrowth(currentRevenue, prevRevenue),
       totalOrders,
-      ordersGrowth: 0, // TODO: Calculate from previous period
+      ordersGrowth: calculateGrowth(currentOrders, prevOrders),
       totalMembers,
-      membersGrowth: 0, // TODO: Calculate from previous period
+      membersGrowth: 0, // Member growth perlu implementasi khusus
       totalMemberPoints: parseInt(totalMemberPoints),
-      pointsGrowth: 0, // TODO: Calculate from previous period
+      pointsGrowth: 0, // Point growth perlu implementasi khusus
     };
 
     res.json(result);
@@ -123,6 +207,41 @@ export const getMonthlySales = async (req, res) => {
   } catch (error) {
     console.error("Error fetching monthly sales:", error);
     res.status(500).json({ message: "Error fetching monthly sales" });
+  }
+};
+
+// Get monthly purchase data for chart
+export const getMonthlyPurchases = async (req, res) => {
+  try {
+    // Query untuk mendapatkan data pembelian bulanan dari Purchase
+    const monthlyPurchases = await Purchase.findAll({
+      attributes: [
+        [Sequelize.fn("MONTH", Sequelize.col("purchase_date")), "month"],
+        [Sequelize.fn("YEAR", Sequelize.col("purchase_date")), "year"],
+        [Sequelize.fn("SUM", Sequelize.col("total_amount")), "totalPurchases"],
+      ],
+      group: [
+        Sequelize.fn("YEAR", Sequelize.col("purchase_date")),
+        Sequelize.fn("MONTH", Sequelize.col("purchase_date")),
+      ],
+      order: [
+        [Sequelize.fn("YEAR", Sequelize.col("purchase_date")), "ASC"],
+        [Sequelize.fn("MONTH", Sequelize.col("purchase_date")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    // Format data untuk chart
+    let chartData = monthlyPurchases.map((item) => ({
+      month: getMonthName(item.month),
+      year: item.year,
+      purchases: parseFloat(item.totalPurchases) || 0,
+    }));
+
+    res.json(chartData);
+  } catch (error) {
+    console.error("Error fetching monthly purchases:", error);
+    res.status(500).json({ message: "Error fetching monthly purchases" });
   }
 };
 
@@ -257,6 +376,119 @@ export const getDailySales = async (req, res) => {
   } catch (error) {
     console.error("Error fetching daily sales:", error);
     res.status(500).json({ message: "Error fetching daily sales" });
+  }
+};
+
+// Get daily purchase data for chart
+export const getDailyPurchases = async (req, res) => {
+  try {
+    // Get current date in Indonesia timezone (UTC+7)
+    const now = new Date();
+    const indonesiaOffset = 7 * 60; // UTC+7 in minutes
+    const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+    const indonesiaTime = new Date(utcTime + indonesiaOffset * 60000);
+
+    // Set dates in Indonesia timezone
+    const today = new Date(
+      indonesiaTime.getFullYear(),
+      indonesiaTime.getMonth(),
+      indonesiaTime.getDate()
+    );
+    const endDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59
+    );
+    const startDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() - 29,
+      0,
+      0,
+      0
+    );
+
+    // Query untuk mendapatkan data pembelian harian dari Purchase
+    const dailyPurchases = await Purchase.findAll({
+      attributes: [
+        [
+          Sequelize.fn(
+            "DATE",
+            Sequelize.fn(
+              "CONVERT_TZ",
+              Sequelize.col("purchase_date"),
+              "+00:00",
+              "+07:00"
+            )
+          ),
+          "date",
+        ],
+        [Sequelize.fn("SUM", Sequelize.col("total_amount")), "totalPurchases"],
+      ],
+      where: {
+        purchase_date: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      group: [
+        Sequelize.fn(
+          "DATE",
+          Sequelize.fn(
+            "CONVERT_TZ",
+            Sequelize.col("purchase_date"),
+            "+00:00",
+            "+07:00"
+          )
+        ),
+      ],
+      order: [
+        [
+          Sequelize.fn(
+            "DATE",
+            Sequelize.fn(
+              "CONVERT_TZ",
+              Sequelize.col("purchase_date"),
+              "+00:00",
+              "+07:00"
+            )
+          ),
+          "ASC",
+        ],
+      ],
+      raw: true,
+    });
+
+    // Create a map of existing purchase data
+    const purchaseMap = {};
+    dailyPurchases.forEach((item) => {
+      purchaseMap[item.date] = parseFloat(item.totalPurchases) || 0;
+    });
+
+    // Generate complete 30-day data with zeros for missing days
+    const chartData = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - i
+      );
+      const dateStr = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const dayNumber = date.getDate();
+
+      chartData.push({
+        day: dayNumber.toString(),
+        date: dateStr,
+        purchases: purchaseMap[dateStr] || 0,
+      });
+    }
+
+    res.json(chartData);
+  } catch (error) {
+    console.error("Error fetching daily purchases:", error);
+    res.status(500).json({ message: "Error fetching daily purchases" });
   }
 };
 

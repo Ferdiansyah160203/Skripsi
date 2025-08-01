@@ -6,7 +6,7 @@ import {
   updatePointPromo,
   deletePointPromo,
 } from "../controller/PromoController.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
 

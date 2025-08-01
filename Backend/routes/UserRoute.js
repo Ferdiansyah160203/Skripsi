@@ -10,7 +10,7 @@ import {
   resetPassword,
 } from "../controller/UserController.js";
 import { refreshToken } from "../controller/RefreshToken.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../middleware/VerifyToken.js";
 import express from "express";
 
 const router = express.Router();

@@ -17,6 +17,11 @@ const InventoryModel = db.define("inventories", {
     allowNull: false,
     defaultValue: 0,
   },
+  expiry_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: "Tanggal kadaluarsa inventaris",
+  },
 });
 
 export default InventoryModel;

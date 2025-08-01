@@ -8,6 +8,7 @@ import PromoRoute from "./PromoRoute.js";
 import StockOpname from "./StockRoute.js";
 import FileRoute from "./FileRoute.js";
 import DashboardRoute from "./DashboardRoute.js";
+import PurchaseRoute from "./PurchaseRoute.js";
 const router = express.Router();
 
 router.use("/api/transactions", TransactionRoute);
@@ -19,5 +20,6 @@ router.use("/api/stock-opnames", StockOpname);
 router.use("/api/promos", PromoRoute);
 router.use("/api/files", FileRoute);
 router.use("/api/dashboard", DashboardRoute);
+router.use("/api/purchases", PurchaseRoute);
 
 export default router;

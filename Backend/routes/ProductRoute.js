@@ -7,7 +7,7 @@ import {
   deleteProduct,
   getAvailableProducts,
 } from "../controller/ProductController.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../middleware/VerifyToken.js";
 import { upload } from "../middleware/UploadImage.js";
 import {
   cleanupOnError,

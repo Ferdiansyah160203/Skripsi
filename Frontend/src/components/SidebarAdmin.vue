@@ -115,6 +115,7 @@ import {
   Box,
   SendToBack,
   PackageCheck,
+  ShoppingCart,
 } from 'lucide-vue-next'
 
 defineProps({
@@ -145,6 +146,7 @@ const navItems = computed(() => {
         icon: ShoppingBasket,
       },
       { label: 'Inventories', to: '/inventories', icon: Box },
+      { label: 'Purchase', to: '/purchases', icon: ShoppingCart },
       { label: 'Stock Opname', to: '/stock-opname', icon: PackageCheck },
       { label: 'Report', to: '/transactions', icon: FileText },
       { label: 'User Management', to: '/users', icon: Users },

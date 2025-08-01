@@ -95,6 +95,21 @@
               <div class="text-xs text-gray-500">
                 {{ transaction.member.phone || transaction.member.email }}
               </div>
+              <div v-if="transaction.payment_method === 'points'" class="text-xs text-red-600 mt-1">
+                Point Digunakan: {{ formatCurrency(transaction.final_price) }} poin
+              </div>
+              <div v-else class="text-xs text-green-600 mt-1">
+                Point Didapat: +{{
+                  transaction.member.points_earned || Math.floor(transaction.final_price / 1000)
+                }}
+                poin
+              </div>
+              <div class="text-xs text-blue-600 mt-1">
+                <span v-if="transaction.payment_method === 'points'">
+                  Sisa Point: {{ transaction.member.total_points || 0 }} poin
+                </span>
+                <span v-else> Total Point: {{ transaction.member.total_points || 0 }} point </span>
+              </div>
             </div>
           </div>
           <!-- Tambahkan bagian untuk menampilkan notes -->
@@ -140,6 +155,40 @@
           >
             <span class="font-semibold">Kembalian:</span>
             <span>Rp {{ formatCurrency(transaction.change || 0) }}</span>
+          </div>
+          <div
+            v-if="transaction.payment_method === 'points'"
+            class="flex justify-between items-center text-gray-700"
+          >
+            <span class="font-semibold">Dibayar dengan Point:</span>
+            <span class="text-red-600 font-medium"
+              >{{ formatCurrency(transaction.final_price) }} poin</span
+            >
+          </div>
+          <div
+            v-if="transaction.member && transaction.payment_method !== 'points'"
+            class="flex justify-between items-center text-gray-700 border-t border-gray-200 pt-2 mt-2"
+          >
+            <span class="font-semibold">Point yang Didapat:</span>
+            <span class="text-green-600 font-medium"
+              >+{{
+                transaction.member.points_earned || Math.floor(transaction.final_price / 1000)
+              }}
+              poin</span
+            >
+          </div>
+          <div
+            v-if="transaction.member && transaction.payment_method !== 'points'"
+            class="flex justify-between items-center text-gray-700"
+          >
+            <span class="font-semibold">Total Point Setelah:</span>
+            <span class="text-blue-600 font-medium"
+              >{{
+                transaction.member.total_points +
+                (transaction.member.points_earned || Math.floor(transaction.final_price / 1000))
+              }}
+              poin</span
+            >
           </div>
         </div>
       </div>
@@ -313,6 +362,26 @@
           <div v-if="transaction.member" class="text-xs">
             <p>Member: {{ transaction.member.name }}</p>
             <p>{{ transaction.member.phone || transaction.member.email }}</p>
+            <div v-if="transaction.payment_method === 'points'" class="mt-1">
+              <p>Point Digunakan: {{ formatCurrency(transaction.final_price) }} poin</p>
+              <p>Sisa Point: {{ transaction.member.points || 0 }} poin</p>
+            </div>
+            <div v-else-if="transaction.member.points_earned || transaction.member" class="mt-1">
+              <p>
+                Point Didapat: +{{
+                  transaction.member.points_earned || Math.floor(transaction.final_price / 1000)
+                }}
+                poin
+              </p>
+              <p>
+                Total Point:
+                {{
+                  (transaction.member.total_points || 0) +
+                  (transaction.member.points_earned || Math.floor(transaction.final_price / 1000))
+                }}
+                poin
+              </p>
+            </div>
           </div>
           <p class="text-xs">------------------------------------</p>
         </div>
@@ -363,6 +432,34 @@
           <p v-if="transaction.payment_method === 'cash'" class="flex justify-between text-xs">
             <span>Kembalian:</span><span>Rp {{ formatCurrency(transaction.change || 0) }}</span>
           </p>
+          <p v-if="transaction.payment_method === 'points'" class="flex justify-between text-xs">
+            <span>Dibayar Poin:</span
+            ><span>{{ formatCurrency(transaction.final_price) }} poin</span>
+          </p>
+          <div
+            v-if="transaction.member && transaction.payment_method !== 'points'"
+            class="text-xs mt-1"
+          >
+            <p class="flex justify-between">
+              <span>Point Didapat:</span
+              ><span
+                >+{{
+                  transaction.member.points_earned || Math.floor(transaction.final_price / 1000)
+                }}
+                point</span
+              >
+            </p>
+            <p class="flex justify-between">
+              <span>Total Point:</span
+              ><span
+                >{{
+                  (transaction.member.total_points || 0) +
+                  (transaction.member.points_earned || Math.floor(transaction.final_price / 1000))
+                }}
+                poin</span
+              >
+            </p>
+          </div>
           <p class="text-xs mt-2">------------------------------------</p>
         </div>
 

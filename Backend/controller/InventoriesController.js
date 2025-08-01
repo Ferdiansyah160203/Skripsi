@@ -2,7 +2,7 @@ import InventoryModel from "../models/InventoriesModel.js";
 
 //create inventory
 export const createInventory = async (req, res) => {
-  const { name, unit, stock } = req.body;
+  const { name, unit, stock, expiry_date } = req.body;
 
   try {
     if (!name || !unit || stock === undefined) {
@@ -12,11 +12,18 @@ export const createInventory = async (req, res) => {
     // Allow negative stock values
     const stockValue = parseInt(stock) || 0;
 
-    const newInventory = await InventoryModel.create({
+    const inventoryData = {
       name,
       unit,
       stock: stockValue,
-    });
+    };
+
+    // Add expiry_date if provided
+    if (expiry_date) {
+      inventoryData.expiry_date = expiry_date;
+    }
+
+    const newInventory = await InventoryModel.create(inventoryData);
 
     res
       .status(201)
@@ -56,7 +63,7 @@ export const getInventoryById = async (req, res) => {
 
 export const updateInventory = async (req, res) => {
   const { id } = req.params;
-  const { name, unit, stock } = req.body;
+  const { name, unit, stock, expiry_date } = req.body;
 
   try {
     const inventory = await InventoryModel.findByPk(id);
@@ -70,6 +77,11 @@ export const updateInventory = async (req, res) => {
     // Allow negative stock values - no validation for minimum stock
     if (stock !== undefined) {
       inventory.stock = parseInt(stock) || 0;
+    }
+
+    // Update expiry_date if provided (can be null to remove expiry date)
+    if (expiry_date !== undefined) {
+      inventory.expiry_date = expiry_date;
     }
 
     await inventory.save();

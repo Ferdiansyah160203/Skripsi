@@ -17,6 +17,9 @@ import StockOpName from '@/views/Admin/StockOpName/StockOpNameCreate.vue'
 import StockOpNameIndex from '@/views/Admin/StockOpName/StockOpNameIndex.vue'
 import StockOpNameShow from '@/views/Admin/StockOpName/StockOpNameShow.vue'
 
+import PurchaseList from '@/views/Admin/Purchase/PurchaseList.vue'
+import PurchaseForm from '@/views/Admin/Purchase/PurchaseForm.vue'
+
 import UserView from '@/views/Admin/User/UserView.vue'
 
 import PointMember from '@/views/PointMember.vue'
@@ -106,6 +109,24 @@ const router = createRouter({
       path: '/stock-opname/show/:session_id',
       name: 'stock-opname-show',
       component: StockOpNameShow,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/purchases',
+      name: 'purchases',
+      component: PurchaseList,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/purchases/create',
+      name: 'purchase-create',
+      component: PurchaseForm,
+      meta: { requiresAuth: true, allowedRoles: ['admin'] },
+    },
+    {
+      path: '/purchases/edit/:id',
+      name: 'purchase-edit',
+      component: PurchaseForm,
       meta: { requiresAuth: true, allowedRoles: ['admin'] },
     },
     {

@@ -48,6 +48,8 @@
                 <option value="">Semua Status</option>
                 <option value="Tersedia">Tersedia</option>
                 <option value="Habis">Habis</option>
+                <option value="Kadaluarsa">Kadaluarsa</option>
+                <option value="Akan Kadaluarsa">Akan Kadaluarsa (≤7 hari)</option>
               </select>
             </div>
 
@@ -104,6 +106,8 @@
               <option value="">Status Ketersediaan</option>
               <option value="Tersedia">Tersedia</option>
               <option value="Habis">Habis</option>
+              <option value="Kadaluarsa">Kadaluarsa</option>
+              <option value="Akan Kadaluarsa">Akan Kadaluarsa (≤7 hari)</option>
             </select>
 
             <!-- Add Button -->
@@ -179,6 +183,11 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Masa Kadaluarsa
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Status Ketersediaan
                 </th>
                 <th
@@ -210,12 +219,23 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                   {{ formatNumber(item.stock) }}
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <div v-if="item.expiry_date">
+                    <div class="font-medium" :class="getExpiryTextClass(item.expiry_date)">
+                      {{ formatDate(item.expiry_date) }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      {{ getExpiryDescription(item.expiry_date) }}
+                    </div>
+                  </div>
+                  <span v-else class="text-gray-400 italic">Tidak ada</span>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
                     class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"
-                    :class="getStatusClass(item.stock)"
+                    :class="getStatusClass(item.stock, item.expiry_date)"
                   >
-                    {{ getStatusText(item.stock) }}
+                    {{ getStatusText(item.stock, item.expiry_date) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -238,7 +258,7 @@
                 </td>
               </tr>
               <tr v-if="filteredInventories.length === 0">
-                <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                   <div class="flex flex-col items-center">
                     <svg
                       class="w-16 h-16 text-gray-300 mb-4"
@@ -350,7 +370,7 @@
               </div>
 
               <!-- Info grid -->
-              <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="grid grid-cols-2 gap-4 text-sm mb-3">
                 <div class="bg-gray-50 rounded-lg p-3">
                   <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
                     Unit
@@ -365,14 +385,27 @@
                 </div>
               </div>
 
+              <!-- Expiry Date -->
+              <div v-if="item.expiry_date" class="bg-gray-50 rounded-lg p-3 mb-3">
+                <div class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1">
+                  Masa Kadaluarsa
+                </div>
+                <div class="font-medium" :class="getExpiryTextClass(item.expiry_date)">
+                  {{ formatDate(item.expiry_date) }}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ getExpiryDescription(item.expiry_date) }}
+                </div>
+              </div>
+
               <!-- Status -->
-              <div class="mt-3 flex justify-between items-center">
+              <div class="flex justify-between items-center">
                 <div class="text-xs text-gray-500 uppercase tracking-wide font-medium">Status</div>
                 <span
                   class="inline-flex px-3 py-1 text-xs font-semibold rounded-full"
-                  :class="getStatusClass(item.stock)"
+                  :class="getStatusClass(item.stock, item.expiry_date)"
                 >
-                  {{ getStatusText(item.stock) }}
+                  {{ getStatusText(item.stock, item.expiry_date) }}
                 </span>
               </div>
             </div>
@@ -557,7 +590,7 @@ const filteredInventories = computed(() => {
   // Filter by status
   if (selectedStatus.value) {
     filtered = filtered.filter((item) => {
-      const status = getStatusText(item.stock)
+      const status = getStatusText(item.stock, item.expiry_date)
       return status === selectedStatus.value
     })
   }
@@ -700,9 +733,25 @@ const formatNumber = (val) => {
   }).format(val)
 }
 
-// Helper untuk mendapatkan teks status berdasarkan stok
-const getStatusText = (stock) => {
+// Helper untuk mendapatkan teks status berdasarkan stok dan masa kadaluarsa
+const getStatusText = (stock, expiryDate = null) => {
   const stockValue = parseFloat(stock) || 0
+
+  // Cek masa kadaluarsa terlebih dahulu jika ada
+  if (expiryDate) {
+    const today = new Date()
+    const expiry = new Date(expiryDate)
+    const diffTime = expiry - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) {
+      return 'Kadaluarsa'
+    } else if (diffDays <= 7) {
+      return 'Akan Kadaluarsa'
+    }
+  }
+
+  // Jika tidak ada masalah kadaluarsa, cek stok
   if (stockValue > 0) {
     return 'Tersedia'
   } else if (stockValue === 0) {
@@ -713,14 +762,81 @@ const getStatusText = (stock) => {
 }
 
 // Helper untuk mendapatkan class CSS status
-const getStatusClass = (stock) => {
+const getStatusClass = (stock, expiryDate = null) => {
   const stockValue = parseFloat(stock) || 0
+
+  // Cek masa kadaluarsa terlebih dahulu jika ada
+  if (expiryDate) {
+    const today = new Date()
+    const expiry = new Date(expiryDate)
+    const diffTime = expiry - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) {
+      return 'bg-red-100 text-red-800' // Kadaluarsa
+    } else if (diffDays <= 7) {
+      return 'bg-orange-100 text-orange-800' // Akan kadaluarsa
+    }
+  }
+
+  // Jika tidak ada masalah kadaluarsa, cek stok
   if (stockValue > 0) {
     return 'bg-green-100 text-green-800'
   } else if (stockValue === 0) {
     return 'bg-yellow-100 text-yellow-800'
   } else {
     return 'bg-red-100 text-red-800'
+  }
+}
+
+// Helper untuk format tanggal
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+// Helper untuk mendapatkan deskripsi masa kadaluarsa
+const getExpiryDescription = (expiryDate) => {
+  if (!expiryDate) return ''
+
+  const today = new Date()
+  const expiry = new Date(expiryDate)
+  const diffTime = expiry - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return `Kadaluarsa ${Math.abs(diffDays)} hari yang lalu`
+  } else if (diffDays === 0) {
+    return 'Kadaluarsa hari ini'
+  } else if (diffDays === 1) {
+    return 'Kadaluarsa besok'
+  } else if (diffDays <= 7) {
+    return `Kadaluarsa dalam ${diffDays} hari`
+  } else {
+    return `${diffDays} hari lagi`
+  }
+}
+
+// Helper untuk mendapatkan class CSS text berdasarkan masa kadaluarsa
+const getExpiryTextClass = (expiryDate) => {
+  if (!expiryDate) return 'text-gray-900'
+
+  const today = new Date()
+  const expiry = new Date(expiryDate)
+  const diffTime = expiry - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return 'text-red-600' // Kadaluarsa
+  } else if (diffDays <= 7) {
+    return 'text-orange-600' // Akan kadaluarsa
+  } else {
+    return 'text-gray-900' // Normal
   }
 }
 </script>

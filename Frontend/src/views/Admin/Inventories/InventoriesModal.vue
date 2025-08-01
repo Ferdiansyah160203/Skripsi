@@ -48,7 +48,11 @@
             </svg>
           </button>
         </div>
-        <form @submit.prevent="handleSubmit" class="space-y-5">
+        <form
+          @submit.prevent="handleSubmit"
+          class="space-y-5"
+          :key="isEditMode ? `edit-${props.editId}` : 'create'"
+        >
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nama Inventaris</label>
             <input
@@ -85,6 +89,18 @@
               required
             />
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Masa Kadaluarsa (Opsional)</label
+            >
+            <input
+              v-model="form.expiry_date"
+              type="date"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-sky-500 focus:border-sky-500 transition duration-200"
+              placeholder="Pilih tanggal kadaluarsa"
+            />
+            <p class="text-xs text-gray-500 mt-1">Kosongkan jika tidak ada masa kadaluarsa</p>
+          </div>
           <div class="flex justify-end gap-3 pt-4">
             <button
               type="button"
@@ -107,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch, defineProps, defineEmits, nextTick } from 'vue'
 import api from '/utils/axios.js' // Sesuaikan path ini
 import Swal from 'sweetalert2'
 
@@ -117,7 +133,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'saved'])
 
-const form = ref({ name: '', unit: '', stock: 0 })
+const form = ref({ name: '', unit: '', stock: 0, expiry_date: '' })
 const isEditMode = ref(false)
 
 // Opsi untuk dropdown unit
@@ -130,7 +146,28 @@ watch(
       isEditMode.value = true
       try {
         const { data } = await api.get(`/api/inventories/${newId}`) // Pastikan endpoint ini benar untuk ambil data inventaris tunggal
-        form.value = { ...data }
+        console.log('Data received from API:', data) // Debug log
+
+        // Format date for input type="date" (expects YYYY-MM-DD format)
+        let formattedExpiryDate = ''
+        if (data.expiry_date) {
+          const date = new Date(data.expiry_date)
+          if (!isNaN(date.getTime())) {
+            formattedExpiryDate = date.toISOString().split('T')[0] // Convert to YYYY-MM-DD
+          }
+        }
+
+        // Explicitly map each field to ensure all fields are populated correctly
+        form.value = {
+          name: data.name || '',
+          unit: data.unit || '',
+          stock: Number(data.stock) || 0,
+          expiry_date: formattedExpiryDate,
+        }
+        console.log('Form value after assignment:', form.value) // Debug log
+
+        // Force reactivity update
+        await nextTick()
       } catch (error) {
         console.error('Gagal memuat data inventaris untuk edit:', error)
         Swal.fire('Error', 'Gagal memuat data inventaris untuk diedit.', 'error')
@@ -150,7 +187,7 @@ function close() {
 }
 
 function resetForm() {
-  form.value = { name: '', unit: '', stock: 0 }
+  form.value = { name: '', unit: '', stock: 0, expiry_date: '' }
 }
 
 async function handleSubmit() {

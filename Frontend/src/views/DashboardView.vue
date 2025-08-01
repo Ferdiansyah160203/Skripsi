@@ -10,20 +10,20 @@
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-4 rounded-lg shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center">
-              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-[#DB3A40] rounded-lg flex-shrink-0">
                 <ShoppingCart class="text-white" size="24" />
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-600">Total Penjualan</p>
-                <p class="text-2xl font-bold text-gray-900">
+                <p class="text-xl font-bold text-gray-900 whitespace-nowrap">
                   Rp. {{ formatCurrency(dashboardData.totalSales) }}
                 </p>
               </div>
             </div>
             <span
-              class="text-sm px-3 py-1 rounded-full mt-5"
+              class="text-sm px-3 py-1 rounded-full flex-shrink-0"
               :class="
                 dashboardData.salesGrowth >= 0
                   ? 'bg-green-100 text-green-700'
@@ -36,20 +36,75 @@
         </div>
 
         <div class="bg-white p-4 rounded-lg shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center">
-              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-[#DB3A40] rounded-lg flex-shrink-0">
+                <ChartNoAxesCombined class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Total Pembelian</p>
+                <p class="text-xl font-bold text-gray-900 whitespace-nowrap">
+                  Rp. {{ formatCurrency(dashboardData.totalPurchase) }}
+                </p>
+              </div>
+            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full flex-shrink-0"
+              :class="
+                dashboardData.purchaseGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.purchaseGrowth >= 0 ? '+' : '' }}{{ dashboardData.purchaseGrowth }}%
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-[#DB3A40] rounded-lg flex-shrink-0">
+                <CircleDollarSign class="text-white" size="24" />
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-600">Revenue</p>
+                <p
+                  class="text-xl font-bold whitespace-nowrap"
+                  :class="dashboardData.revenue >= 0 ? 'text-green-600' : 'text-red-600'"
+                >
+                  Rp. {{ formatCurrency(dashboardData.revenue) }}
+                </p>
+              </div>
+            </div>
+            <span
+              class="text-sm px-3 py-1 rounded-full flex-shrink-0"
+              :class="
+                dashboardData.revenueGrowth >= 0
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              "
+            >
+              {{ dashboardData.revenueGrowth >= 0 ? '+' : '' }}{{ dashboardData.revenueGrowth }}%
+            </span>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-3 bg-[#DB3A40] rounded-lg flex-shrink-0">
                 <Repeat class="text-white" size="24" />
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-600">Total Order</p>
-                <p class="text-2xl font-bold text-gray-900">
+                <p class="text-xl font-bold text-gray-900 whitespace-nowrap">
                   {{ formatNumber(dashboardData.totalOrders) }}
                 </p>
               </div>
             </div>
             <span
-              class="text-sm px-3 py-1 rounded-full mt-5"
+              class="text-sm px-3 py-1 rounded-full flex-shrink-0"
               :class="
                 dashboardData.ordersGrowth >= 0
                   ? 'bg-green-100 text-green-700'
@@ -57,58 +112,6 @@
               "
             >
               {{ dashboardData.ordersGrowth >= 0 ? '+' : '' }}{{ dashboardData.ordersGrowth }}%
-            </span>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center">
-              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
-                <Users class="text-white" size="24" />
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-600">Total Member</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  {{ formatNumber(dashboardData.totalMembers) }}
-                </p>
-              </div>
-            </div>
-            <span
-              class="text-sm px-3 py-1 rounded-full mt-5"
-              :class="
-                dashboardData.membersGrowth >= 0
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              "
-            >
-              {{ dashboardData.membersGrowth >= 0 ? '+' : '' }}{{ dashboardData.membersGrowth }}%
-            </span>
-          </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center">
-              <div class="p-3 bg-[#DB3A40] rounded-lg mr-3">
-                <Award class="text-white" size="24" />
-              </div>
-              <div>
-                <p class="text-sm font-medium text-gray-600">Total Poin Member</p>
-                <p class="text-2xl font-bold text-gray-900">
-                  {{ formatNumber(dashboardData.totalMemberPoints) }}
-                </p>
-              </div>
-            </div>
-            <span
-              class="text-sm px-3 py-1 rounded-full mt-5"
-              :class="
-                dashboardData.pointsGrowth >= 0
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              "
-            >
-              {{ dashboardData.pointsGrowth >= 0 ? '+' : '' }}{{ dashboardData.pointsGrowth }}%
             </span>
           </div>
         </div>
@@ -126,7 +129,6 @@
                 </h2>
                 <div class="flex items-center gap-4 mt-2">
                   <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
                     <span class="text-sm text-gray-600">{{
                       chartViewMode === 'monthly' ? 'Bulan ini' : 'Hari ini'
                     }}</span>
@@ -516,7 +518,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed } from 'vue'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { ShoppingCart, Repeat, Users, Award } from 'lucide-vue-next'
+import { ShoppingCart, Repeat, CircleDollarSign, ChartNoAxesCombined } from 'lucide-vue-next'
 import Chart from 'chart.js/auto'
 import api from '/utils/axios'
 
@@ -540,7 +542,11 @@ const stockItemsPerPage = ref(5)
 // Dashboard data
 const dashboardData = ref({
   totalSales: 0,
+  totalPurchase: 0,
+  revenue: 0,
   salesGrowth: 0,
+  purchaseGrowth: 0,
+  revenueGrowth: 0,
   totalOrders: 0,
   ordersGrowth: 0,
   totalMembers: 0,
@@ -552,6 +558,8 @@ const dashboardData = ref({
   stocks: [],
   monthlySales: [],
   dailySales: [], // Data untuk chart harian
+  monthlyPurchases: [],
+  dailyPurchases: [], // Data pembelian untuk chart
 })
 
 // Helper function untuk format mata uang IDR
@@ -812,7 +820,7 @@ const createSalesChart = () => {
 // Switch chart view between monthly and daily
 const switchChartView = (mode) => {
   chartViewMode.value = mode
-  // Recreate chart with new data
+  // Recreate charts with new data
   createSalesChart()
 }
 
@@ -866,7 +874,9 @@ const fetchDashboardData = async () => {
       summaryRes,
       topProductsRes,
       monthlySalesRes,
+      monthlyPurchasesRes,
       dailySalesRes,
+      dailyPurchasesRes,
       productsRes,
       stocksRes,
       previousYearSalesRes,
@@ -875,7 +885,9 @@ const fetchDashboardData = async () => {
       api.get('/api/dashboard/summary'),
       api.get('/api/dashboard/top-products'),
       api.get('/api/dashboard/monthly-sales'),
+      api.get('/api/dashboard/monthly-purchases'),
       api.get('/api/dashboard/daily-sales'),
+      api.get('/api/dashboard/daily-purchases'),
       api.get('/api/dashboard/products'),
       api.get('/api/dashboard/stocks'),
       api.get('/api/dashboard/previous-year-sales').catch(() => null), // Optional API
@@ -886,12 +898,15 @@ const fetchDashboardData = async () => {
     Object.assign(dashboardData.value, summaryRes.data)
     dashboardData.value.topSellingProducts = topProductsRes.data
     dashboardData.value.monthlySales = monthlySalesRes.data
+    dashboardData.value.monthlyPurchases = monthlyPurchasesRes.data
     dashboardData.value.dailySales = dailySalesRes.data
+    dashboardData.value.dailyPurchases = dailyPurchasesRes.data
     dashboardData.value.products = productsRes.data
     dashboardData.value.stocks = stocksRes.data
 
     // Debug daily sales data
     console.log('Daily Sales Data received:', dailySalesRes.data)
+    console.log('Daily Purchases Data received:', dailyPurchasesRes.data)
     console.log('Today should be day:', new Date().getDate())
     console.log('Last few days in chart:', dailySalesRes.data.slice(-5))
 

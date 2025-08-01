@@ -8,7 +8,7 @@ import {
   reduceInventoryStock,
   addInventoryStock,
 } from "../controller/InventoriesController.js";
-import { verifyToken } from "../middleware/verifyToken.js";
+import { verifyToken } from "../middleware/VerifyToken.js";
 
 const router = express.Router();
 
