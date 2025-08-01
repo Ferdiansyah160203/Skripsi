@@ -164,9 +164,20 @@ export const createTransaction = async (req, res) => {
       });
     }
 
+    // Ambil kembali transaction dengan data member
+    const createdTransaction = await Transaction.findByPk(transaction.id, {
+      include: [
+        {
+          model: Member,
+          attributes: ["id", "name", "phone", "email"],
+          required: false,
+        },
+      ],
+    });
+
     res.status(201).json({
       message: "Transaction created successfully",
-      transaction,
+      transaction: createdTransaction,
     });
   } catch (error) {
     console.error("Create Transaction Error:", error);
@@ -249,7 +260,15 @@ export const updateTransaction = async (req, res) => {
 
 export const getTransactionById = async (req, res) => {
   try {
-    const transaction = await Transaction.findByPk(req.params.id);
+    const transaction = await Transaction.findByPk(req.params.id, {
+      include: [
+        {
+          model: Member,
+          attributes: ["id", "name", "phone", "email"],
+          required: false, // LEFT JOIN untuk transaksi tanpa member
+        },
+      ],
+    });
 
     if (!transaction)
       return res.status(404).json({ message: "Transaksi tidak ditemukan" });
@@ -282,7 +301,15 @@ export const getTransactionById = async (req, res) => {
 
 export const getAllTransactions = async (_unused, res) => {
   try {
-    const transactions = await Transaction.findAll();
+    const transactions = await Transaction.findAll({
+      include: [
+        {
+          model: Member,
+          attributes: ["id", "name", "phone", "email"],
+          required: false, // LEFT JOIN untuk transaksi tanpa member
+        },
+      ],
+    });
     res.status(200).json(transactions);
   } catch (error) {
     res
@@ -386,6 +413,7 @@ export const markAsPaid = async (req, res) => {
         message: "Transaction paid using points successfully",
         transaction: {
           ...transaction.toJSON(),
+          member: member,
           items: parsedItems,
         },
       });
@@ -429,6 +457,7 @@ export const markAsPaid = async (req, res) => {
       message: "Transaction marked as paid successfully",
       transaction: {
         ...transaction.toJSON(),
+        member: member,
         change,
         items: parsedItems,
       },

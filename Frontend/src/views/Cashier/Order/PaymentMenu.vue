@@ -88,12 +88,14 @@
               transaction.payment_method
             }}</span>
           </div>
-          <div
-            v-if="transaction.member_identifier"
-            class="flex justify-between items-center text-gray-700"
-          >
-            <span class="font-semibold">ID Member:</span>
-            <span>{{ transaction.member_identifier }}</span>
+          <div v-if="transaction.member" class="flex justify-between items-center text-gray-700">
+            <span class="font-semibold">Member:</span>
+            <div class="text-right">
+              <div class="font-medium text-blue-600">{{ transaction.member.name }}</div>
+              <div class="text-xs text-gray-500">
+                {{ transaction.member.phone || transaction.member.email }}
+              </div>
+            </div>
           </div>
           <!-- Tambahkan bagian untuk menampilkan notes -->
           <div v-if="transaction.notes" class="border-t border-gray-300 pt-3 mt-3">
@@ -308,9 +310,10 @@
             <span>Tanggal: {{ formatDateTime(transaction.createdAt) }}</span>
           </p>
           <p class="text-xs">Transaksi ID: {{ transaction.id }}</p>
-          <p v-if="transaction.member_identifier" class="text-xs">
-            Member ID: {{ transaction.member_identifier }}
-          </p>
+          <div v-if="transaction.member" class="text-xs">
+            <p>Member: {{ transaction.member.name }}</p>
+            <p>{{ transaction.member.phone || transaction.member.email }}</p>
+          </div>
           <p class="text-xs">------------------------------------</p>
         </div>
 

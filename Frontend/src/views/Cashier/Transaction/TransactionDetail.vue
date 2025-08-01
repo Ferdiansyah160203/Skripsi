@@ -164,6 +164,11 @@
                 <th
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
+                  Member
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Item
                 </th>
                 <th
@@ -222,6 +227,15 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDateTime(item.createdAt) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <div v-if="item.member" class="flex flex-col">
+                    <span class="font-medium text-blue-600">{{ item.member.name }}</span>
+                    <span class="text-xs text-gray-500">{{
+                      item.member.phone || item.member.email
+                    }}</span>
+                  </div>
+                  <span v-else class="text-gray-400 italic text-xs">Guest</span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                   <div
@@ -324,7 +338,7 @@
                 </td>
               </tr>
               <tr v-if="filteredTransactions.length === 0">
-                <td colspan="11" class="px-6 py-12 text-center">
+                <td colspan="12" class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center justify-center">
                     <svg
                       class="w-12 h-12 text-gray-400 mb-4"
@@ -498,7 +512,9 @@ function applyFilter() {
     const matchSearch =
       !query ||
       formatTransactionId(item.id).toLowerCase().includes(query) || // Gunakan formatTransactionId di sini
-      (item.member_identifier && item.member_identifier.toLowerCase().includes(query)) ||
+      (item.member && item.member.name && item.member.name.toLowerCase().includes(query)) ||
+      (item.member && item.member.phone && item.member.phone.toLowerCase().includes(query)) ||
+      (item.member && item.member.email && item.member.email.toLowerCase().includes(query)) ||
       (item.items && parseItems(item.items).some((i) => i.name.toLowerCase().includes(query)))
 
     return matchDate && matchStatus && matchSearch
@@ -559,6 +575,15 @@ const formatDateTime = (dateString) => {
   return new Date(dateString).toLocaleDateString('id-ID', options)
 }
 
+const formatDate = (dateString) => {
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }
+  return new Date(dateString).toLocaleDateString('id-ID', options)
+}
+
 // Export PDF
 function exportToPDF() {
   const doc = new jsPDF()
@@ -567,17 +592,36 @@ function exportToPDF() {
   doc.setTextColor(40)
   doc.text('Laporan Transaksi', 14, 15)
 
+  // Tambahkan informasi periode tanggal
+  let dateRange = ''
+  if (filterStart.value && filterEnd.value) {
+    dateRange = `Periode: ${formatDate(filterStart.value)} - ${formatDate(filterEnd.value)}`
+  } else if (filterStart.value) {
+    dateRange = `Mulai dari: ${formatDate(filterStart.value)}`
+  } else if (filterEnd.value) {
+    dateRange = `Sampai: ${formatDate(filterEnd.value)}`
+  } else {
+    dateRange = 'Periode: Semua data'
+  }
+
+  doc.setFontSize(10)
+  doc.setTextColor(100)
+  doc.text(dateRange, 14, 25)
+  doc.text(`Dicetak pada: ${formatDateTime(new Date())}`, 14, 32)
+
   const rows = filteredTransactions.value.map((t, index) => {
     const itemsArr = parseItems(t.items)
     // Tampilan item di PDF juga diubah tanpa ()
     const itemNames = itemsArr.map((i) => `${i.name} x ${i.qty || i.quantity_sold || 1}`).join(', ')
     const displayItems = itemNames.length > 50 ? itemNames.substring(0, 47) + '...' : itemNames
     const notes = t.notes ? (t.notes.length > 30 ? t.notes.substring(0, 27) + '...' : t.notes) : '-'
+    const memberInfo = t.member ? `${t.member.name} (${t.member.phone || t.member.email})` : 'Guest'
 
     return [
       index + 1,
       formatTransactionId(t.id), // Menggunakan helper function yang lebih cerdas
       formatDateTime(t.createdAt),
+      memberInfo, // Tambah kolom member
       displayItems,
       // Menambahkan kolom quantity_sold di PDF juga
       t.quantity_sold,
@@ -591,12 +635,13 @@ function exportToPDF() {
   })
 
   autoTable(doc, {
-    startY: 25,
+    startY: 40,
     head: [
       [
         'No',
         'ID Transaksi',
         'Tanggal',
+        'Member',
         'Item',
         'Qty Jual',
         'Total',
@@ -605,7 +650,7 @@ function exportToPDF() {
         'Metode',
         'Status',
         'Catatan',
-      ], // Tambah header Qty Jual dan Catatan
+      ], // Tambah header Member, Qty Jual dan Catatan
     ],
     body: rows,
     styles: { fontSize: 7, cellPadding: 1, overflow: 'linebreak' },
@@ -623,6 +668,7 @@ function exportToPDF() {
   doc.setFontSize(12)
   doc.setTextColor(40)
   doc.text(`Total Penjualan (Lunas): Rp${formatCurrency(total)}`, 14, doc.lastAutoTable.finalY + 10)
+  doc.text(`Total Transaksi: ${totalTransactions.value}`, 14, doc.lastAutoTable.finalY + 20)
 
   const filename = `laporan-transaksi-${new Date().toISOString().slice(0, 10)}.pdf`
   doc.save(filename)
