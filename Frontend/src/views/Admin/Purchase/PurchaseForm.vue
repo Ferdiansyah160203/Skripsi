@@ -127,21 +127,29 @@
               class="border border-gray-200 rounded-lg p-4 bg-gray-50"
             >
               <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="md:col-span-2">
+                <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Item Inventori <span class="text-red-500">*</span>
+                    Nama Item <span class="text-red-500">*</span>
                   </label>
-                  <select
-                    v-model="item.inventory_id"
-                    @change="updateItemName"
+                  <input
+                    v-model="item.item_name"
+                    type="text"
                     required
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                  >
-                    <option value="">Pilih item inventori</option>
-                    <option v-for="inv in inventories" :key="inv.id" :value="inv.id">
-                      {{ inv.name }} ({{ inv.unit }})
-                    </option>
-                  </select>
+                    placeholder="Masukkan nama item"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Satuan <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="item.unit"
+                    type="text"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                    placeholder="kg, pcs, liter, dll"
+                  />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -295,7 +303,6 @@ const route = useRoute()
 const router = useRouter()
 
 const loading = ref(false)
-const inventories = ref([])
 const purchaseData = ref(null)
 
 const form = ref({
@@ -316,21 +323,10 @@ const totalAmount = computed(() => {
 })
 
 onMounted(async () => {
-  await fetchInventories()
   if (isEdit.value) {
     await fetchPurchase()
   }
 })
-
-async function fetchInventories() {
-  try {
-    const { data } = await api.get('/api/inventories/')
-    inventories.value = data
-  } catch (err) {
-    console.error('Error fetching inventories:', err)
-    Swal.fire('Error', 'Gagal memuat data inventori.', 'error')
-  }
-}
 
 async function fetchPurchase() {
   try {
@@ -355,7 +351,8 @@ function populateForm() {
       notes: purchaseData.value.notes || '',
       invoice_number: purchaseData.value.invoice_number || '',
       items: purchaseData.value.items.map((item) => ({
-        inventory_id: item.inventory_id,
+        item_name: item.item_name || '',
+        unit: item.unit || '',
         quantity: item.quantity,
         unit_price: item.unit_price,
         subtotal: item.subtotal,
@@ -368,7 +365,8 @@ function populateForm() {
 
 function addItem() {
   form.value.items.push({
-    inventory_id: '',
+    item_name: '',
+    unit: '',
     quantity: 0,
     unit_price: 0,
     subtotal: 0,
@@ -379,11 +377,6 @@ function addItem() {
 
 function removeItem(index) {
   form.value.items.splice(index, 1)
-}
-
-function updateItemName() {
-  // This function is called when inventory is selected
-  // Can be used for additional logic if needed
 }
 
 function calculateSubtotal(index) {
