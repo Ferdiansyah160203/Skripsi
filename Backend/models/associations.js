@@ -36,14 +36,4 @@ PurchaseItem.belongsTo(Purchase, {
   onDelete: "CASCADE",
 });
 
-InventoryModel.hasMany(PurchaseItem, {
-  foreignKey: "inventory_id",
-  onDelete: "CASCADE",
-});
-PurchaseItem.belongsTo(InventoryModel, {
-  foreignKey: "inventory_id",
-  onDelete: "CASCADE",
-  as: "inventory",
-});
-
 export { Product, InventoryModel, ProductMaterial, Purchase, PurchaseItem };

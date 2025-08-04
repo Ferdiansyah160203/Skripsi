@@ -47,6 +47,7 @@
               >
                 <option value="">Semua Status</option>
                 <option value="Tersedia">Tersedia</option>
+                <option value="Hampir Habis">Hampir Habis</option>
                 <option value="Habis">Habis</option>
                 <option value="Kadaluarsa">Kadaluarsa</option>
                 <option value="Akan Kadaluarsa">Akan Kadaluarsa (≤7 hari)</option>
@@ -105,6 +106,7 @@
             >
               <option value="">Status Ketersediaan</option>
               <option value="Tersedia">Tersedia</option>
+              <option value="Hampir Habis">Hampir Habis</option>
               <option value="Habis">Habis</option>
               <option value="Kadaluarsa">Kadaluarsa</option>
               <option value="Akan Kadaluarsa">Akan Kadaluarsa (≤7 hari)</option>
@@ -752,8 +754,10 @@ const getStatusText = (stock, expiryDate = null) => {
   }
 
   // Jika tidak ada masalah kadaluarsa, cek stok
-  if (stockValue > 0) {
+  if (stockValue > 5) {
     return 'Tersedia'
+  } else if (stockValue > 0 && stockValue <= 5) {
+    return 'Hampir Habis'
   } else if (stockValue === 0) {
     return 'Habis'
   } else {
@@ -780,12 +784,14 @@ const getStatusClass = (stock, expiryDate = null) => {
   }
 
   // Jika tidak ada masalah kadaluarsa, cek stok
-  if (stockValue > 0) {
-    return 'bg-green-100 text-green-800'
+  if (stockValue > 5) {
+    return 'bg-green-100 text-green-800' // Tersedia
+  } else if (stockValue > 0 && stockValue <= 5) {
+    return 'bg-yellow-100 text-yellow-800' // Hampir Habis
   } else if (stockValue === 0) {
-    return 'bg-yellow-100 text-yellow-800'
+    return 'bg-red-100 text-red-800' // Habis
   } else {
-    return 'bg-red-100 text-red-800'
+    return 'bg-red-100 text-red-800' // Minus
   }
 }
 

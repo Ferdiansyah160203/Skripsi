@@ -70,7 +70,9 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Total Nilai Pembelian</p>
-              <p class="text-2xl font-bold text-gray-900">Rp {{ formatCurrency(stats.totalAmount) }}</p>
+              <p class="text-2xl font-bold text-gray-900">
+                Rp {{ formatCurrency(stats.totalAmount) }}
+              </p>
             </div>
             <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +90,9 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600">Belum Lunas</p>
-              <p class="text-2xl font-bold text-gray-900">Rp {{ formatCurrency(stats.pendingAmount) }}</p>
+              <p class="text-2xl font-bold text-gray-900">
+                Rp {{ formatCurrency(stats.pendingAmount) }}
+              </p>
             </div>
             <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +161,8 @@
         <div class="px-6 py-4 border-b border-gray-200">
           <h3 class="text-lg font-semibold text-gray-900">Data Pembelian</h3>
           <p class="text-sm text-gray-600">
-            Menampilkan {{ paginatedPurchases.length }} dari {{ filteredPurchases.length }} pembelian
+            Menampilkan {{ paginatedPurchases.length }} dari
+            {{ filteredPurchases.length }} pembelian
           </p>
         </div>
 
@@ -165,19 +170,59 @@
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Invoice</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
-                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  No
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Tanggal
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Supplier
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  No. Invoice
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Items
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Total
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Metode
+                </th>
+                <th
+                  class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="(item, index) in paginatedPurchases" :key="item.id" class="hover:bg-gray-50 transition-colors duration-200">
+              <tr
+                v-for="(item, index) in paginatedPurchases"
+                :key="item.id"
+                class="hover:bg-gray-50 transition-colors duration-200"
+              >
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {{ (currentPage - 1) * itemsPerPage + index + 1 }}
                 </td>
@@ -187,7 +232,9 @@
                 <td class="px-6 py-4 text-sm text-gray-900">
                   <div>
                     <span class="font-medium">{{ item.supplier_name }}</span>
-                    <div v-if="item.supplier_contact" class="text-xs text-gray-500">{{ item.supplier_contact }}</div>
+                    <div v-if="item.supplier_contact" class="text-xs text-gray-500">
+                      {{ item.supplier_contact }}
+                    </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -195,8 +242,8 @@
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900">
                   <div v-for="i in item.items.slice(0, 2)" :key="i.id" class="mb-1">
-                    <span class="block font-medium">{{ i.inventory.name }}</span>
-                    <span class="text-xs text-gray-500">{{ i.quantity }} {{ i.inventory.unit }}</span>
+                    <span class="block font-medium">{{ i.item_name }}</span>
+                    <span class="text-xs text-gray-500">{{ i.quantity }} {{ i.unit }}</span>
                   </div>
                   <span v-if="item.items.length > 2" class="text-gray-400 text-xs italic">
                     +{{ item.items.length - 2 }} item lainnya
@@ -212,8 +259,8 @@
                       item.payment_status === 'paid'
                         ? 'bg-green-100 text-green-800'
                         : item.payment_status === 'partial'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800',
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800',
                     ]"
                   >
                     {{ getStatusText(item.payment_status) }}
@@ -266,7 +313,10 @@
       <div class="bg-white px-6 py-4 border-t border-gray-200 rounded-b-lg">
         <div class="flex items-center justify-between">
           <div class="flex items-center text-sm text-gray-700">
-            <span>Menampilkan {{ paginatedPurchases.length }} dari {{ filteredPurchases.length }} pembelian</span>
+            <span
+              >Menampilkan {{ paginatedPurchases.length }} dari
+              {{ filteredPurchases.length }} pembelian</span
+            >
           </div>
 
           <div class="flex items-center space-x-2">
@@ -284,7 +334,9 @@
               Sebelumnya
             </button>
 
-            <span class="text-sm text-gray-700 px-3 py-2"> Halaman {{ currentPage }} dari {{ totalPages }} </span>
+            <span class="text-sm text-gray-700 px-3 py-2">
+              Halaman {{ currentPage }} dari {{ totalPages }}
+            </span>
 
             <button
               @click="nextPage"
@@ -325,7 +377,7 @@ import {
   Edit,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-vue-next'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -337,7 +389,7 @@ const purchases = ref([])
 const stats = ref({
   totalPurchases: 0,
   totalAmount: 0,
-  pendingAmount: 0
+  pendingAmount: 0,
 })
 const filterStart = ref('')
 const filterEnd = ref('')
@@ -439,7 +491,7 @@ async function deletePurchase(id) {
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
     confirmButtonText: 'Ya, Hapus!',
-    cancelButtonText: 'Batal'
+    cancelButtonText: 'Batal',
   })
 
   if (result.isConfirmed) {
@@ -521,7 +573,9 @@ function exportToPDF() {
   doc.text(`Dicetak pada: ${formatDateTime(new Date())}`, 14, 32)
 
   const rows = filteredPurchases.value.map((purchase, index) => {
-    const itemNames = purchase.items.map((i) => `${i.inventory.name} (${i.quantity} ${i.inventory.unit})`).join(', ')
+    const itemNames = purchase.items
+      .map((i) => `${i.item_name} (${i.quantity} ${i.unit})`)
+      .join(', ')
     const displayItems = itemNames.length > 50 ? itemNames.substring(0, 47) + '...' : itemNames
 
     return [
@@ -538,9 +592,7 @@ function exportToPDF() {
 
   autoTable(doc, {
     startY: 40,
-    head: [
-      ['No', 'Tanggal', 'Supplier', 'No. Invoice', 'Items', 'Total', 'Status', 'Metode']
-    ],
+    head: [['No', 'Tanggal', 'Supplier', 'No. Invoice', 'Items', 'Total', 'Status', 'Metode']],
     body: rows,
     styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
     headStyles: { fillColor: [46, 125, 50], fontStyle: 'bold' },
@@ -550,7 +602,11 @@ function exportToPDF() {
   doc.setFontSize(12)
   doc.setTextColor(40)
   doc.text(`Total Pembelian: ${stats.value.totalPurchases}`, 14, doc.lastAutoTable.finalY + 10)
-  doc.text(`Total Nilai: Rp${formatCurrency(stats.value.totalAmount)}`, 14, doc.lastAutoTable.finalY + 20)
+  doc.text(
+    `Total Nilai: Rp${formatCurrency(stats.value.totalAmount)}`,
+    14,
+    doc.lastAutoTable.finalY + 20,
+  )
 
   const filename = `laporan-pembelian-${new Date().toISOString().slice(0, 10)}.pdf`
   doc.save(filename)

@@ -1,8 +1,4 @@
-import {
-  Purchase,
-  PurchaseItem,
-  InventoryModel,
-} from "../models/associations.js";
+import { Purchase, PurchaseItem } from "../models/associations.js";
 import { Op } from "sequelize";
 import db from "../config/Database.js";
 
@@ -14,13 +10,6 @@ export const getAllPurchases = async (req, res) => {
         {
           model: PurchaseItem,
           as: "items",
-          include: [
-            {
-              model: InventoryModel,
-              as: "inventory",
-              attributes: ["id", "name", "unit"],
-            },
-          ],
         },
       ],
       order: [["createdAt", "DESC"]],
@@ -42,13 +31,6 @@ export const getPurchaseById = async (req, res) => {
         {
           model: PurchaseItem,
           as: "items",
-          include: [
-            {
-              model: InventoryModel,
-              as: "inventory",
-              attributes: ["id", "name", "unit"],
-            },
-          ],
         },
       ],
     });
@@ -90,10 +72,11 @@ export const createPurchase = async (req, res) => {
     // Calculate total amount
     let total_amount = 0;
     for (const item of items) {
-      if (!item.inventory_id || !item.quantity || !item.unit_price) {
+      if (!item.item_name || !item.unit || !item.quantity || !item.unit_price) {
         await transaction.rollback();
         return res.status(400).json({
-          message: "Each item must have inventory_id, quantity, and unit_price",
+          message:
+            "Each item must have item_name, unit, quantity, and unit_price",
         });
       }
       total_amount += item.quantity * item.unit_price;
@@ -114,13 +97,14 @@ export const createPurchase = async (req, res) => {
       { transaction }
     );
 
-    // Create purchase items and update inventory stock
+    // Create purchase items
     for (const item of items) {
       // Create purchase item
       await PurchaseItem.create(
         {
           purchase_id: purchase.id,
-          inventory_id: item.inventory_id,
+          item_name: item.item_name,
+          unit: item.unit,
           quantity: item.quantity,
           unit_price: item.unit_price,
           subtotal: item.quantity * item.unit_price,
@@ -129,19 +113,6 @@ export const createPurchase = async (req, res) => {
         },
         { transaction }
       );
-
-      // Update inventory stock
-      const inventory = await InventoryModel.findByPk(item.inventory_id, {
-        transaction,
-      });
-      if (inventory) {
-        await inventory.update(
-          {
-            stock: inventory.stock + item.quantity,
-          },
-          { transaction }
-        );
-      }
     }
 
     await transaction.commit();
@@ -152,13 +123,6 @@ export const createPurchase = async (req, res) => {
         {
           model: PurchaseItem,
           as: "items",
-          include: [
-            {
-              model: InventoryModel,
-              as: "inventory",
-              attributes: ["id", "name", "unit"],
-            },
-          ],
         },
       ],
     });
@@ -215,13 +179,6 @@ export const updatePurchase = async (req, res) => {
         {
           model: PurchaseItem,
           as: "items",
-          include: [
-            {
-              model: InventoryModel,
-              as: "inventory",
-              attributes: ["id", "name", "unit"],
-            },
-          ],
         },
       ],
     });
@@ -257,21 +214,6 @@ export const deletePurchase = async (req, res) => {
     if (!purchase) {
       await transaction.rollback();
       return res.status(404).json({ message: "Purchase not found" });
-    }
-
-    // Revert inventory stock
-    for (const item of purchase.items) {
-      const inventory = await InventoryModel.findByPk(item.inventory_id, {
-        transaction,
-      });
-      if (inventory) {
-        await inventory.update(
-          {
-            stock: Math.max(0, inventory.stock - item.quantity),
-          },
-          { transaction }
-        );
-      }
     }
 
     // Delete purchase (items will be deleted automatically due to CASCADE)

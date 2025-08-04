@@ -17,13 +17,13 @@ const PurchaseItem = db.define(
         key: "id",
       },
     },
-    inventory_id: {
-      type: DataTypes.INTEGER,
+    item_name: {
+      type: DataTypes.STRING,
       allowNull: false,
-      references: {
-        model: "inventories",
-        key: "id",
-      },
+    },
+    unit: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     quantity: {
       type: DataTypes.FLOAT,

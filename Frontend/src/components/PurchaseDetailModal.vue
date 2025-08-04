@@ -108,12 +108,12 @@
                   <tr v-for="item in purchase.items" :key="item.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm text-gray-900">
                       <div>
-                        <span class="font-medium">{{ item.inventory.name }}</span>
-                        <div class="text-xs text-gray-500">Unit: {{ item.inventory.unit }}</div>
+                        <span class="font-medium">{{ item.item_name }}</span>
+                        <div class="text-xs text-gray-500">Unit: {{ item.unit }}</div>
                       </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {{ item.quantity }} {{ item.inventory.unit }}
+                      {{ item.quantity }} {{ item.unit }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       Rp {{ formatCurrency(item.unit_price) }}
