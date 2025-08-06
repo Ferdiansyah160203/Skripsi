@@ -662,8 +662,95 @@ function closeProductModal() {
 
 // Fungsi untuk menambahkan item ke keranjang dari modal dan kemudian menutup modal
 function addToCartAndCloseModal() {
-  addToCart() // Panggil fungsi addToCart utama
-  closeProductModal() // Tutup modal
+  // Simpan referensi produk sebelum menambah ke cart
+  const productToAdd = selectedProduct.value
+  const quantityToAdd = orderQuantity.value
+
+  if (!productToAdd || quantityToAdd < 1) {
+    Swal.fire('Warning', 'Pilih produk dan masukkan jumlah yang valid (minimal 1).', 'warning')
+    return
+  }
+
+  // Cek status stock dan proses sesuai kondisi
+  const stockStatus = getStockStatus(productToAdd)
+
+  if (stockStatus === 'negative') {
+    Swal.fire({
+      title: 'Stock Bahan Minus!',
+      text: `Produk "${productToAdd.name}" memiliki bahan dengan stock minus. Order akan tetap diproses dan stock akan semakin minus.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Tetap Pesan',
+      cancelButtonText: 'Batal',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        processAddToCartDirectly(productToAdd, quantityToAdd)
+        closeProductModal()
+      }
+    })
+    return
+  } else if (stockStatus === 'low') {
+    Swal.fire({
+      title: 'Stock Bahan Terbatas!',
+      text: `Produk "${productToAdd.name}" memiliki bahan dengan stock terbatas. Setelah order ini, stock mungkin menjadi minus.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Tetap Pesan',
+      cancelButtonText: 'Batal',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        processAddToCartDirectly(productToAdd, quantityToAdd)
+        closeProductModal()
+      }
+    })
+    return
+  }
+
+  // Jika stock normal, langsung proses dan tutup modal
+  processAddToCartDirectly(productToAdd, quantityToAdd)
+  closeProductModal()
+}
+
+// Fungsi untuk memproses penambahan ke cart dengan parameter langsung
+function processAddToCartDirectly(product, quantity) {
+  const existing = cart.value.find((i) => i.product_id === product.id)
+  const promo = getPromoForProduct(product)
+
+  if (existing) {
+    existing.quantity += quantity
+    // Update promo info jika belum ada
+    if (promo && promo.point_cost && !existing.has_promo) {
+      existing.promo_point_cost = promo.point_cost
+      existing.has_promo = true
+    }
+  } else {
+    const cartItem = {
+      product_id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      item_notes: '', // Inisialisasi item_notes sebagai string kosong
+    }
+
+    // Tambahkan informasi promo jika ada
+    if (promo && promo.point_cost) {
+      cartItem.promo_point_cost = promo.point_cost
+      cartItem.has_promo = true
+    }
+
+    cart.value.push(cartItem)
+  }
+
+  Swal.fire({
+    icon: 'success',
+    title: `${product.name} (${quantity}x) ditambahkan!`,
+    showConfirmButton: false,
+    timer: 1500,
+  })
 }
 
 // Fetch data member berdasarkan identifier (email/HP)
@@ -815,91 +902,6 @@ function getStockStatus(product) {
 // Fungsi untuk mendapatkan data promo terkait produk
 function getPromoForProduct(product) {
   return promos.value.find((promo) => promo.product_id === product.id)
-}
-
-// Fungsi utama untuk menambahkan produk ke keranjang
-function addToCart() {
-  if (!selectedProduct.value || orderQuantity.value < 1) {
-    Swal.fire('Warning', 'Pilih produk dan masukkan jumlah yang valid (minimal 1).', 'warning')
-    return
-  }
-
-  // Cek status stock dan tampilkan peringatan jika diperlukan
-  const stockStatus = getStockStatus(selectedProduct.value)
-
-  if (stockStatus === 'negative') {
-    Swal.fire({
-      title: 'Stock Bahan Minus!',
-      text: `Produk "${selectedProduct.value.name}" memiliki bahan dengan stock minus. Order akan tetap diproses dan stock akan semakin minus.`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Tetap Pesan',
-      cancelButtonText: 'Batal',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        processAddToCart()
-      }
-    })
-    return
-  } else if (stockStatus === 'low') {
-    Swal.fire({
-      title: 'Stock Bahan Terbatas!',
-      text: `Produk "${selectedProduct.value.name}" memiliki bahan dengan stock terbatas. Setelah order ini, stock mungkin menjadi minus.`,
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Tetap Pesan',
-      cancelButtonText: 'Batal',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        processAddToCart()
-      }
-    })
-    return
-  }
-
-  // Jika stock normal, langsung proses
-  processAddToCart()
-}
-
-// Fungsi untuk memproses penambahan ke cart (dipisah agar bisa dipanggil dari SweetAlert)
-function processAddToCart() {
-  const existing = cart.value.find((i) => i.product_id === selectedProduct.value.id)
-  const promo = getPromoForProduct(selectedProduct.value)
-
-  if (existing) {
-    existing.quantity += orderQuantity.value
-    // Update promo info jika belum ada
-    if (promo && promo.point_cost && !existing.has_promo) {
-      existing.promo_point_cost = promo.point_cost
-      existing.has_promo = true
-    }
-  } else {
-    const cartItem = {
-      product_id: selectedProduct.value.id,
-      name: selectedProduct.value.name,
-      price: selectedProduct.value.price,
-      quantity: orderQuantity.value,
-      item_notes: '', // Inisialisasi item_notes sebagai string kosong
-    }
-
-    // Tambahkan informasi promo jika ada
-    if (promo && promo.point_cost) {
-      cartItem.promo_point_cost = promo.point_cost
-      cartItem.has_promo = true
-    }
-
-    cart.value.push(cartItem)
-  }
-  Swal.fire({
-    icon: 'success',
-    title: `${selectedProduct.value.name} (${orderQuantity.value}x) ditambahkan!`,
-    showConfirmButton: false,
-    timer: 1500,
-  })
 }
 
 // Fungsi untuk menghapus item dari keranjang dengan konfirmasi SweetAlert
